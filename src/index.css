@@ -1,1 +1,271 @@
 @import "tailwindcss";
+
+/* Homepage Styles - Web3 Futuristic Theme */
+@import url("https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100;14..32,200;14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background: #000000;
+  overflow-x: hidden;
+}
+
+/* Main Container */
+#main {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  background: radial-gradient(
+    circle at 20% 50%,
+    rgba(20, 20, 30, 0.4) 0%,
+    #000000 100%
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  overflow: hidden;
+}
+
+/* Animated Background Grid */
+#main::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(rgba(50, 50, 70, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(50, 50, 70, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  animation: gridMove 20s linear infinite;
+}
+
+@keyframes gridMove {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(50px, 50px);
+  }
+}
+
+/* Glowing Orb Effect */
+#main::after {
+  content: "";
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(
+    circle,
+    rgba(99, 102, 241, 0.15) 0%,
+    rgba(0, 0, 0, 0) 70%
+  );
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  filter: blur(60px);
+  pointer-events: none;
+  animation: pulse 8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+/* Header Styles */
+.header {
+  font-size: clamp(2.5rem, 8vw, 5.5rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 2;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+/* Welcome to text - White Outline Effect */
+.header {
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(255, 255, 255, 0.8);
+  text-stroke: 2px rgba(255, 255, 255, 0.8);
+}
+
+/* The Bazaar - Gradient Fill (overrides the outline) */
+.header .bol {
+  background: linear-gradient(135deg, #ffffff 0%, #a0a0ff 50%, #6366f1 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: 0px;
+  text-stroke: 0px;
+  position: relative;
+  display: inline-block;
+  animation: gradientShift 3s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+  0%,
+  100% {
+    background: linear-gradient(135deg, #ffffff 0%, #a0a0ff 50%, #6366f1 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+  50% {
+    background: linear-gradient(135deg, #6366f1 0%, #ffffff 50%, #a0a0ff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+}
+
+/* Alternative: More Dramatic Outline Effect with Glow */
+/* Uncomment this block if you want a more dramatic outline with glow */
+/*
+.header {
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.9);
+  text-stroke: 1.5px rgba(255, 255, 255, 0.9);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.header .bol {
+  -webkit-text-stroke: 0px;
+  text-stroke: 0px;
+  text-shadow: none;
+}
+*/
+
+/* Paragraph Styles */
+.p-tag {
+  font-size: clamp(1rem, 4vw, 1.25rem);
+  font-weight: 400;
+  line-height: 1.6;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  position: relative;
+  z-index: 2;
+  animation: fadeInUp 0.8s ease-out 0.2s backwards;
+  color: #9ca3af;
+}
+
+/* The Bazaar Text Styles */
+.bol {
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.bol:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.5));
+}
+
+/* Optional: Add a subtle text shadow to the outline text */
+.header {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+/* Animation Keyframes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header {
+    padding: 0 1rem;
+    -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.8);
+    text-stroke: 1.5px rgba(255, 255, 255, 0.8);
+  }
+
+  .p-tag {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  #main::before {
+    background-size: 30px 30px;
+  }
+}
+
+/* Scanline Effect */
+#main {
+  position: relative;
+}
+
+#main::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(255, 255, 255, 0.02) 2px,
+    rgba(255, 255, 255, 0.02) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Glow effect on text selection */
+::selection {
+  background: rgba(99, 102, 241, 0.3);
+  color: #ffffff;
+}
+
+/* Optional CTA Button Styles */
+.cta-button {
+  display: inline-block;
+  margin-top: 2rem;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  animation: fadeInUp 0.8s ease-out 0.4s backwards;
+}
+
+.cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+}
+
+.cta-button:active {
+  transform: translateY(0);
+}
