@@ -5,13 +5,12 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract MarketPlace is ERC721URIStorage, Ownable, ReentrancyGuard {
   uint256 public constant MAX_SUPPLY = 1000000;
   uint256 public constant listingPrice = 0.001 ether;
-  bytes32 public constant DEFAULT_ADMIN_ROLE = keccak256("DEFAULT_ADMIN_ROLE");
+  uint256 private s_totalSupply;
 
   struct NFT_RWA {
     uint256 tokenId;
@@ -35,8 +34,11 @@ contract MarketPlace is ERC721URIStorage, Ownable, ReentrancyGuard {
   event PURCHASE_SUCCESS(uint256 indexed tokenId, string name, string description, string tokenURI, uint256 price, address indexed buyer);
   event NFTBought(uint256 indexed tokenId, address indexed buyer, uint256 price);
 
-  constructor() ERC721("MKT_TOKEN", "MKTPTKN") Ownable(msg.sender) {
-    _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+  constructor() ERC721("MKT_TOKEN", "MKTPTKN") {
+  }
+
+  function totalSupply() public view returns (uint256) {
+    return s_totalSupply;
   }
 
   //function to mint a new NFT representing a real-world asset
@@ -53,11 +55,13 @@ contract MarketPlace is ERC721URIStorage, Ownable, ReentrancyGuard {
         uint256 tokenId = totalSupply() + 1;
         _safeMint(msg.sender, tokenId);
         _setTokenURI(tokenId, _tokenURI);
+        s_totalSupply++;
         
         nftObject[tokenId] = NFT_RWA({
             tokenId: tokenId,
             name: _name,
             description: _description,
+          tokenURI: _tokenURI,
             owner: payable(msg.sender),
             price: _price,
             isListed: false,
@@ -65,8 +69,9 @@ contract MarketPlace is ERC721URIStorage, Ownable, ReentrancyGuard {
         });
         
         ownerNFTs[msg.sender].push(tokenId);
+        allNFTs.push(nftObject[tokenId]);
         
-        emit NFTMinted(tokenId, _name, _price, msg.sender);
+        emit NFTMinted(tokenId, _name, _description, _tokenURI, _price, msg.sender);
         return tokenId;
     }
 
@@ -112,6 +117,7 @@ contract MarketPlace is ERC721URIStorage, Ownable, ReentrancyGuard {
         _transfer(seller, msg.sender, _tokenId);
         _removeOwnedToken(seller, _tokenId);
         ownerNFTs[msg.sender].push(_tokenId);
+        _syncAllNFT(_tokenId);
         
         // Transfer funds
         (bool success, ) = seller.call{value: price}("");

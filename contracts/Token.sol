@@ -15,26 +15,15 @@ contract MyToken is ERC20, AccessControl, Ownable {
     event BURNSUCCESS(address indexed _user, uint256 _amount);
 
 
-    constructor() ERC20("MyToken", "MTK") Ownable(msg.sender) {
-        _mint(msg.sender, INITIAL_SUPPLY);
-        balanceOf(msg.sender) = INITIAL_SUPPLY;
+    constructor() ERC20("MyToken", "MTK") {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
-    }
-
-    modifier onlyRole(bytes32 role) {
-        require(roles[role][msg.sender], "Access denied");
-        _;
-    }
-    
-    function _grantRole(bytes32 role, address account) internal {
-        roles[role][account] = true;
+        _mint(msg.sender, INITIAL_SUPPLY);
     }
 
     function mintToken(address _user, uint256 _amount) external onlyRole(MINTER_ROLE) returns(uint256) {
         require(totalSupply() + _amount <= MAX_SUPPLY, "MAX SUPPLY EXCEEDED");
         _mint(_user, _amount);
-
-        balanceOf(_user) += _amount;
 
         emit MINTSUCCESS(_user, _amount);
         return totalSupply();
