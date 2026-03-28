@@ -1,4 +1,15 @@
 require("@nomicfoundation/hardhat-toolbox");
+require("dotenv").config();
+
+const SEPOLIA_RPC_URL =
+  process.env.SEPOLIA_RPC_URL ||
+  process.env.VITE_SEPOLIA_RPC_URL ||
+  "";
+
+const PRIVATE_KEY =
+  process.env.PRIVATE_KEY ||
+  process.env.VITE_PRIVATE_KEY ||
+  "";
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -16,9 +27,8 @@ module.exports = {
       allowUnlimitedContractSize: true,
     },
     sepolia: {
-      url: process.env.VITE_SEPOLIA_RPC_URL || "",
-      accounts:
-        process.env.VITE_PRIVATE_KEY !== undefined ? [process.env.VITE_PRIVATE_KEY] : [],
+      url: SEPOLIA_RPC_URL,
+      accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
     },
   },
   etherscan: {
