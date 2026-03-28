@@ -2,10 +2,17 @@ import React from "react";
 
 function Home() {
   return (
-    <div className="bg-gray-300 h-screen">
-      <h1 className="text-4xl font-bold text-center pt-20">
-        Welcome to The Bazaar
+    <div className="bg-black h-screen" id="main">
+      <h1 className="header">
+        Welcome to <span className="bol">The Bazaar</span>
       </h1>
+      <p className="p-tag">
+        Interweaving Art, Assets, and Accurate Data. Discover, Collect, and
+        Trade Unique NFTs with Confidence.
+      </p>
+
+      {/* Optional CTA Button - Uncomment when ready */}
+      <button className="cta-button">Explore Marketplace →</button>
     </div>
   );
 }
