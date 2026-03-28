@@ -2,8 +2,10 @@
 
 pragma solidity ^0.8.24;
 
-import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {MyToken} from "./Token.sol";
 
 contract TokenShop is Ownable {
@@ -22,9 +24,10 @@ contract TokenShop is Ownable {
     error TokenShop__StalePrice();
     error TokenShop__InvalidPrice();
     error TokenShop__ZeroETHSent();
+    error TokenShop__MissingPriceFeed();
     error TokenShop__CouldNotWithdraw();
 
-    constructor(address tokenAddress) Ownable(msg.sender) {
+    constructor(address tokenAddress) {
         i_token = MyToken(tokenAddress);
         /**
         * Network: Sepolia
@@ -41,8 +44,8 @@ contract TokenShop is Ownable {
     (
         uint80 roundID,
         int price,
-        uint startedAt,
-        uint timeStamp,
+        ,
+        uint256 timeStamp,
         uint80 answeredInRound
     ) = i_priceFeed.latestRoundData();
     
@@ -55,17 +58,14 @@ contract TokenShop is Ownable {
 }
 
     function amountToMint(uint256 amountInETH) public view returns (uint256) {
-        // Chainlink ETH/USD price has 8 decimals
         uint256 ethUsdPrice = uint256(getChainlinkDataFeedLatestAnswer());
-    
-        // Convert ETH amount to USD (ETH amount has 18 decimals, price has 8 decimals)
-        // Result will have 26 decimals, we need to adjust
-        uint256 ethAmountInUSD = (amountInETH * ethUsdPrice) / 10**18;
-    
-        // Calculate tokens to mint (each token = $2 with 18 decimals)
-        // ethAmountInUSD has 8 decimals (from price), TOKEN_USD_PRICE has 18 decimals
-        // Result will have (8 + 18 - 18) = 8 decimals, then we multiply by 10**10 to get 18 decimals
-        return (ethAmountInUSD * 10**TOKEN_DECIMALS) / TOKEN_USD_PRICE;
+        uint8 feedDecimals = i_priceFeed.decimals();
+
+        // Convert wei to USD with 18 decimals.
+        uint256 usdValueWith18Decimals = (amountInETH * ethUsdPrice) / (10 ** feedDecimals);
+
+        // Mint amount in token base units (18 decimals).
+        return (usdValueWith18Decimals * (10 ** TOKEN_DECIMALS)) / TOKEN_USD_PRICE;
     }
 
     receive() external payable {
@@ -96,19 +96,38 @@ contract TokenShop is Ownable {
         address tokenOut,
         uint256 amountIn
     ) external returns (uint256) {
+        require(amountIn > 0, "Amount must be greater than zero");
+
         // Transfer tokenIn from user
         IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
         
         // Get prices from Chainlink
         uint256 priceIn = getPrice(tokenIn);
         uint256 priceOut = getPrice(tokenOut);
+
+        uint8 tokenInDecimals = IERC20Metadata(tokenIn).decimals();
+        uint8 tokenOutDecimals = IERC20Metadata(tokenOut).decimals();
         
-        // Calculate amountOut based on prices
-        uint256 amountOut = (amountIn * priceIn) / priceOut;
+        // Decimal-safe quote: amountOut keeps tokenOut's native decimals.
+        uint256 amountOut =
+            (amountIn * priceIn * (10 ** tokenOutDecimals)) /
+            (priceOut * (10 ** tokenInDecimals));
         
         // Transfer tokenOut to user
         IERC20(tokenOut).transfer(msg.sender, amountOut);
         
         return amountOut;
+    }
+
+    function getPrice(address token) public view returns (uint256) {
+        AggregatorV3Interface feed = tokenPriceFeeds[token];
+        if (address(feed) == address(0)) revert TokenShop__MissingPriceFeed();
+
+        (, int256 answer, , uint256 updatedAt, ) = feed.latestRoundData();
+        if (answer <= 0) revert TokenShop__InvalidPrice();
+        if (updatedAt == 0) revert TokenShop__StalePrice();
+
+        uint8 feedDecimals = feed.decimals();
+        return uint256(answer) * (10 ** (18 - feedDecimals));
     }
 }
