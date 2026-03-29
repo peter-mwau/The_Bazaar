@@ -5,7 +5,7 @@ import { client } from "../services/client";
 
 function Navbar() {
   return (
-    <header className="sticky top-0 z-50 w-full bg-black backdrop-blur flex justify-center">
+    <header className="sticky top-0 z-50 w-full bg-black backdrop-blur pt-10 flex justify-center">
       <nav className="max-w-7xl w-full flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <Link to="/" className="text-lg font-bold text-white">
           The Bazaar
