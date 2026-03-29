@@ -47,9 +47,8 @@ contract MarketPlace is ERC721URIStorage, Ownable, ReentrancyGuard {
         string memory _description,
         string memory _tokenURI,
         uint256 _price
-    ) public payable returns (uint256) {
+    ) public returns (uint256) {
         require(totalSupply() + 1 <= MAX_SUPPLY, "Max supply reached");
-        require(msg.value >= listingPrice, "Listing price required");
         require(_price > 0, "Price must be > 0");
         
         uint256 tokenId = totalSupply() + 1;
@@ -81,6 +80,7 @@ contract MarketPlace is ERC721URIStorage, Ownable, ReentrancyGuard {
     require(nftObject[_tokenId].price > 0, "Price must be greater than zero");
     NFT_RWA storage nft = nftObject[_tokenId];
     require(!nft.isListed, "NFT is already listed");
+    require(nft.price >= listingPrice, "Price must cover listing fee");
 
     nft.isListed = true;
     _syncAllNFT(_tokenId);
@@ -105,9 +105,11 @@ contract MarketPlace is ERC721URIStorage, Ownable, ReentrancyGuard {
         NFT_RWA storage nft = nftObject[_tokenId];
         require(nft.isListed, "Not listed");
         require(msg.value >= nft.price, "Insufficient funds");
+        require(nft.price >= listingPrice, "Listing fee exceeds NFT price");
         
         address payable seller = nft.owner;
         uint256 price = nft.price;
+        uint256 sellerProceeds = price - listingPrice;
         
         // Update state
         nft.owner = payable(msg.sender);
@@ -119,8 +121,9 @@ contract MarketPlace is ERC721URIStorage, Ownable, ReentrancyGuard {
         ownerNFTs[msg.sender].push(_tokenId);
         _syncAllNFT(_tokenId);
         
-        // Transfer funds
-        (bool success, ) = seller.call{value: price}("");
+        // Transfer funds: seller receives price minus listing fee.
+        // listingPrice stays in this contract and can be withdrawn by owner.
+        (bool success, ) = seller.call{value: sellerProceeds}("");
         require(success, "Transfer failed");
         
         if (msg.value > price) {

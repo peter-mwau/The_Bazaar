@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/home/pierre/Desktop/pierre/Solidity_Projects/The_Bazaar/contracts/MarketPlace.sol": {
-      "lastModificationDate": 1774698076507,
-      "contentHash": "fbb3a33533140dcf8c44c2df14ad2325",
+      "lastModificationDate": 1774781017490,
+      "contentHash": "2171537b2719b09055f9de3e29f16922",
       "sourceName": "contracts/MarketPlace.sol",
       "solcConfig": {
         "version": "0.8.24",
