@@ -9,16 +9,13 @@ function App() {
     <>
       <Navbar />
       <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
+        position="bottom-right" // Bottom right usually feels more like a "system notification" in 3D UIs
+        autoClose={4000}
+        hideProgressBar={true} // Cleaner look
+        newestOnTop={true}
         closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
+        theme="dark" // Base dark theme
+        toastClassName="custom-toast" // Link to your CSS above
       />
 
       <Routes>

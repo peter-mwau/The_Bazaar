@@ -3,3 +3,32 @@
 @theme {
   --font-custom: font-inter;
 }
+
+/* Customizing React-Toastify to match your 3D UI */
+.Toastify__toast {
+  background: rgba(0, 0, 0, 0.6) !important; /* Semi-transparent black */
+  backdrop-filter: blur(12px); /* Glassmorphism */
+  border-left: 2px solid white !important; /* Your signature side borders */
+  border-right: 2px solid white !important;
+  border-top: 0;
+  border-bottom: 0;
+  border-radius: 8px !important;
+  color: white !important;
+  font-family: "Satoshi", sans-serif; /* Using your custom font */
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.Toastify__toast--success {
+  border-left-color: #10b981 !important; /* Emerald for success */
+  border-right-color: #10b981 !important;
+}
+
+.Toastify__toast--error {
+  border-left-color: #ef4444 !important; /* Red for error */
+  border-right-color: #ef4444 !important;
+}
+
+.Toastify__progress-bar {
+  background: white !important;
+}
