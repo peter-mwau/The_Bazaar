@@ -25,6 +25,7 @@ export const MarketPlaceProvider = ({ children }) => {
   });
   const account = useActiveAccount();
   const address = account?.address;
+  const [isLoading, setIsLoading] = useState(false);
 
   const getMarketplaceContract = async () => {
     return getContract({
@@ -46,6 +47,7 @@ export const MarketPlaceProvider = ({ children }) => {
   //function to create a new NFT and list it on the marketplace
   const createNFT = async (metadata) => {
     const toastId = toast.loading("Minting your NFT...");
+    setIsLoading(true);
     try {
       if (!address || !client) {
         throw new Error("No active account found. Please connect your wallet.");
@@ -75,6 +77,8 @@ export const MarketPlaceProvider = ({ children }) => {
         id: toastId,
       });
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -279,6 +283,7 @@ export const MarketPlaceProvider = ({ children }) => {
       value={{
         marketData,
         setMarketData,
+        isLoading,
         createNFT,
         listNFT,
         delistNFT,
