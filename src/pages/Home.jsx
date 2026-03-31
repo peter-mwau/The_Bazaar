@@ -5,7 +5,7 @@ import {
   useTransform,
   AnimatePresence,
 } from "framer-motion";
-import { ConnectButton, useActiveAccount } from "thirdweb/react";
+import { useActiveAccount } from "thirdweb/react";
 import { Minimize2, Upload, Box } from "lucide-react";
 import { useMarketPlace } from "../contexts/useMarketPlace";
 import { toast } from "react-hot-toast";
@@ -17,7 +17,7 @@ function Home() {
   const isConnected = !!account;
   const [preview, setPreview] = useState(null);
   const [openCreateNFTForm, setOpenCreateNFTForm] = useState(false);
-  const { createNFT, isLoading } = useMarketPlace();
+  const { createNFT, isLoading, fetchAllNFTs } = useMarketPlace();
   const [selectedFile, setSelectedFile] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [isMinting, setIsMinting] = useState(false);
@@ -134,6 +134,9 @@ function Home() {
 
       // Step 4: Confirmation
       setCurrentStep(4);
+
+      // Fetch updated NFTs
+      await fetchAllNFTs();
 
       toast.success("NFT minted successfully!");
 

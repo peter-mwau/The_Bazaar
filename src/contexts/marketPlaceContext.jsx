@@ -10,7 +10,6 @@ import {
   readContract,
 } from "thirdweb";
 import { toast } from "react-hot-toast";
-import { ethers } from "ethers";
 import { useState } from "react";
 
 const MARKETPLACE_ADDRESS = import.meta.env
@@ -27,10 +26,6 @@ export const MarketPlaceProvider = ({ children }) => {
   const account = useActiveAccount();
   const address = account?.address;
   const [isLoading, setIsLoading] = useState(false);
-
-  const DEFAULT_ADMIN_ROLE = ethers.keccak256(
-    ethers.toUtf8Bytes("DEFAULT_ADMIN_ROLE"),
-  );
 
   const getMarketplaceContract = async () => {
     return getContract({
