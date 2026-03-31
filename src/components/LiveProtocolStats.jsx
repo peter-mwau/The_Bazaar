@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 const ProtocolStats = () => {
+  void motion;
   const [timestamp, setTimestamp] = useState(new Date().toLocaleTimeString());
   const [animatedValues, setAnimatedValues] = useState({
     Total_Volume: 0,

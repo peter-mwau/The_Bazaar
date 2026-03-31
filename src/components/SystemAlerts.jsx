@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+const notifications = [
+  "USER_CONNECTED: 0x...a3f",
+  "ORACLE_SYNC: BLOCK_19283",
+  "NEW_LISTING: NEON_SAMURAI",
+  "LIQUIDITY_CHECK: [OK]",
+  "ENCRYPTING_DATA_STREAM...",
+];
+
 const SystemAlerts = () => {
+  void motion;
   const [alerts, setAlerts] = useState([]);
-  const notifications = [
-    "USER_CONNECTED: 0x...a3f",
-    "ORACLE_SYNC: BLOCK_19283",
-    "NEW_LISTING: NEON_SAMURAI",
-    "LIQUIDITY_CHECK: [OK]",
-    "ENCRYPTING_DATA_STREAM...",
-  ];
 
   useEffect(() => {
     const interval = setInterval(() => {
