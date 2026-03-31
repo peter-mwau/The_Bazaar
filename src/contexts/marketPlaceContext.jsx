@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import MarketPlaceABI from "../../artifacts/contracts/MarketPlace.sol/MarketPlace.json";
 import { client } from "../services/client";
 import { MarketPlaceContext } from "./marketPlaceStore";
@@ -12,6 +11,7 @@ import {
 } from "thirdweb";
 import { toast } from "react-hot-toast";
 import { ethers } from "ethers";
+import { useState } from "react";
 
 const MARKETPLACE_ADDRESS = import.meta.env
   .VITE_SEPOLIA_MARKETPLACE_CONTRACT_ADDRESS;
@@ -27,8 +27,6 @@ export const MarketPlaceProvider = ({ children }) => {
   const account = useActiveAccount();
   const address = account?.address;
   const [isLoading, setIsLoading] = useState(false);
-  const [role, setRole] = useState(null);
-  const isConnected = !!account;
 
   const DEFAULT_ADMIN_ROLE = ethers.keccak256(
     ethers.toUtf8Bytes("DEFAULT_ADMIN_ROLE"),
@@ -285,41 +283,6 @@ export const MarketPlaceProvider = ({ children }) => {
     }
   };
 
-  const refreshRole = async () => {
-    if (!isConnected || !address) {
-      console.log("Early return - not connected or no address");
-      return;
-    }
-
-    try {
-      const contract = await getContract({
-        address: MARKETPLACE_ADDRESS,
-        abi: MARKETPLACE_ABI,
-        client,
-        chain: defineChain(11155111), // Sepolia chain
-      });
-
-      const isDefaultAdmin = await readContract({
-        contract,
-        method:
-          "function hasRole(bytes32 role, address account) view returns (bool)",
-        params: [DEFAULT_ADMIN_ROLE, address],
-      });
-
-      if (isDefaultAdmin) {
-        setRole("ADMIN");
-      } else {
-        setRole("USER");
-      }
-    } catch (error) {
-      console.error("Error refreshing user role:", error);
-    }
-  };
-
-  useEffect(() => {
-    refreshRole();
-  }, [address, isConnected, client]);
-
   return (
     <MarketPlaceContext.Provider
       value={{
@@ -334,7 +297,6 @@ export const MarketPlaceProvider = ({ children }) => {
         fetchListedNFTs,
         fetchAllNFTs,
         fetchNFTsByOwner,
-        role,
       }}
     >
       {children}
