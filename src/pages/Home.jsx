@@ -12,6 +12,10 @@ import { toast } from "react-hot-toast";
 import { uploadFileToPinata } from "../services/pinata";
 import { BazaarConnectButton } from "../providers/Provider";
 import FeaturedTicker from "../components/FeaturedTicker";
+import ProtocolStats from "../components/LiveProtocolStats";
+import TerminalNews from "../components/TerminalNews";
+import SystemAlerts from "../components/SystemAlerts";
+import Web3LogoMarquee from "../components/Web3LogoMarquee";
 
 function Home() {
   void motion;
@@ -253,7 +257,7 @@ function Home() {
             animate={{ height: "auto", opacity: 1, y: 0 }}
             exit={{ height: 0, opacity: 0, y: -20 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden w-[60%] mx-auto mt-10 relative z-30 bg-black"
+            className="overflow-hidden w-[60%] mx-auto mb-20 mt-10 relative z-30 bg-black"
           >
             <div className="bg-white/5 backdrop-blur-md rounded-lg border-r border-l border-white/20 p-8 shadow-2xl">
               {/* Header */}
@@ -823,7 +827,7 @@ function Home() {
               initial={{ height: 0, opacity: 0, scale: 0.95 }}
               animate={{ height: "auto", opacity: 1, scale: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden w-[70%] mx-auto mt-10 relative z-30 bg-transparent"
+              className="overflow-hidden w-[60%] mb-20 mx-auto mt-10 relative z-30 bg-transparent"
             >
               <div className="backdrop-blur-xl rounded-lg border-r border-l border-white/20 p-12 shadow-2xl flex flex-col items-center text-center bg-black/30">
                 <motion.div
@@ -868,6 +872,12 @@ function Home() {
           )
         )}
       </AnimatePresence>
+
+      <ProtocolStats />
+
+      <TerminalNews />
+
+      <SystemAlerts />
     </div>
   );
 }

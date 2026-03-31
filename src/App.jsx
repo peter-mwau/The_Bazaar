@@ -1,11 +1,18 @@
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import Navbar from "./components/Navbar";
 import { Toaster } from "react-hot-toast";
 import MarketPlace from "./pages/MarketPlace";
+import Footer from "./components/Footer";
+import Web3LogoMarquee from "./components/Web3LogoMarquee";
+import PerspectiveGrid from "./components/PerspectiveGrid";
 
 function App() {
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
+
   return (
     <>
       <Navbar />
@@ -37,6 +44,9 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/marketplace" element={<MarketPlace />} />
       </Routes>
+      {isHomePage && <Web3LogoMarquee />}
+      {isHomePage && <PerspectiveGrid />}
+      <Footer />
     </>
   );
 }
