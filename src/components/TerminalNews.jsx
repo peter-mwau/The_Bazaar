@@ -2,25 +2,25 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Terminal, ChevronRight, Cpu, Zap, Activity } from "lucide-react";
 
+const messages = [
+  "> INITIALIZING MARKET_SCAN...",
+  "> SCANNING SECTOR_7: 42 NEW ASSETS DETECTED.",
+  "> VERITAS ORACLE: SYNC_COMPLETE (LATENCY: 12MS).",
+  "> ALERT: HIGH TRADING VOLUME IN 'CYBER_SAMURAI' COLLECTION.",
+  "> SYSTEM_NOTICE: GAS_PRICE STABILIZED AT 14 GWEI.",
+  "> NEW USER_ID: 0x71...fE2 HAS ENTERED THE BAZAAR.",
+  "> ANALYZING LIQUIDITY_POOLS... [OK]",
+  "> CHAINLINK FEED: ETH/USD @ $2,345.67",
+  "> NFT_MINT: 'NEON_DREAM' #1243 MINTED BY 0x3a...bF9",
+  "> MARKET_CAP: +2.3% OVER LAST HOUR",
+];
+
 const TerminalNews = () => {
+  void motion;
   const [logs, setLogs] = useState([]);
-  const [isTyping, setIsTyping] = useState(false);
   const [commandInput, setCommandInput] = useState("");
   const [commandHistory, setCommandHistory] = useState([]);
   const terminalRef = useRef(null);
-
-  const messages = [
-    "> INITIALIZING MARKET_SCAN...",
-    "> SCANNING SECTOR_7: 42 NEW ASSETS DETECTED.",
-    "> VERITAS ORACLE: SYNC_COMPLETE (LATENCY: 12MS).",
-    "> ALERT: HIGH TRADING VOLUME IN 'CYBER_SAMURAI' COLLECTION.",
-    "> SYSTEM_NOTICE: GAS_PRICE STABILIZED AT 14 GWEI.",
-    "> NEW USER_ID: 0x71...fE2 HAS ENTERED THE BAZAAR.",
-    "> ANALYZING LIQUIDITY_POOLS... [OK]",
-    "> CHAINLINK FEED: ETH/USD @ $2,345.67",
-    "> NFT_MINT: 'NEON_DREAM' #1243 MINTED BY 0x3a...bF9",
-    "> MARKET_CAP: +2.3% OVER LAST HOUR",
-  ];
 
   const commands = {
     help: "Available commands: status, price, volume, clear, help",

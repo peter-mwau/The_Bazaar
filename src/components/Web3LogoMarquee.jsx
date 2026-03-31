@@ -19,6 +19,7 @@ const logos = [
 ];
 
 function Web3LogoMarquee() {
+  void motion;
   const [isHovered, setIsHovered] = useState(false);
   const duplicated = [...logos, ...logos];
 

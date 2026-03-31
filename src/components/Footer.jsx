@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
 const Footer = () => {
+  void motion;
   const currentYear = new Date().getFullYear();
 
   return (
