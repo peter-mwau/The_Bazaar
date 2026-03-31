@@ -263,14 +263,14 @@ function MarketPlace() {
                     </div>
                   </div>
                   <div className="p-3">
-                    <h3 className="text-xs font-bold uppercase truncate">
+                    <h3 className="text-xs font-bold uppercase truncate text-white/60">
                       {nft.name}
                     </h3>
                     <div className="flex justify-between items-center mt-2">
                       <span className="text-[9px] font-mono text-white/40">
                         PRICE
                       </span>
-                      <span className="text-[10px] font-bold">
+                      <span className="text-[10px] font-bold text-white">
                         {formatPriceInEth(nft.price)} ETH
                       </span>
                     </div>
