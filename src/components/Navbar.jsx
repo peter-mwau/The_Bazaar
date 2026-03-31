@@ -1,7 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ConnectButton } from "thirdweb/react";
-import { client } from "../services/client";
+import { BazaarConnectButton } from "../providers/Provider";
 
 function Navbar() {
   return (
@@ -33,7 +32,7 @@ function Navbar() {
         </div>
 
         <div>
-          <ConnectButton client={client} />
+          <BazaarConnectButton />
         </div>
       </nav>
     </header>

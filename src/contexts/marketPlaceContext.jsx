@@ -58,6 +58,13 @@ export const MarketPlaceProvider = ({ children }) => {
         throw new Error("No active account found. Please connect your wallet.");
       }
 
+      const priceInEth = parseFloat(metadata.price);
+      if (isNaN(priceInEth)) {
+        throw new Error("Invalid price format");
+      }
+
+      const priceInWei = BigInt(Math.floor(priceInEth * 10 ** 18));
+
       const contract = await getMarketplaceContract();
 
       //preparecontract call
@@ -68,7 +75,7 @@ export const MarketPlaceProvider = ({ children }) => {
           metadata.name,
           metadata.description,
           metadata.tokenURI,
-          metadata.price,
+          priceInWei,
         ],
       });
 
