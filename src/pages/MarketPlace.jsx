@@ -1,10 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
-import {
-  motion,
-  AnimatePresence,
-  useScroll,
-  useTransform,
-} from "framer-motion";
+import React, { useEffect, useState, useRef, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useMarketPlace } from "../contexts/useMarketPlace";
 import { useActiveAccount } from "thirdweb/react";
 import {
@@ -19,13 +14,24 @@ import {
   Award,
   TrendingUp,
 } from "lucide-react";
-import FilterSidebar from "../components/FilterSidebar";
+import Sidebar from "../components/Sidebar";
 
 function MarketPlace() {
-  const { marketData, fetchAllNFTs, listNFT, delistNFT } = useMarketPlace();
+  const { marketData, fetchAllNFTs, listNFT, delistNFT, buyNFT } =
+    useMarketPlace();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [sidebarMode, setSidebarMode] = useState("filters");
+  const [selectedNft, setSelectedNft] = useState(null);
   const [actionLoadingTokenId, setActionLoadingTokenId] = useState(null);
   const [selectedTab, setSelectedTab] = useState("all"); // all, listed, owned
+  const [filters, setFilters] = useState({
+    search: "",
+    categories: [],
+    minPrice: "",
+    maxPrice: "",
+    listedOnly: false,
+    ownerMode: "all",
+  });
   const scrollContainerRef = useRef(null);
   const account = useActiveAccount();
   const connectedAddress = account?.address?.toLowerCase();
@@ -53,6 +59,41 @@ function MarketPlace() {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
+  const parseEthToWei = (ethValue) => {
+    try {
+      if (ethValue === "" || ethValue === null || ethValue === undefined) {
+        return null;
+      }
+
+      const normalized = String(ethValue).trim();
+      if (!normalized) return null;
+
+      const [wholePart, fracPart = ""] = normalized.split(".");
+      if (!/^\d+$/.test(wholePart || "0") || !/^\d*$/.test(fracPart)) {
+        return null;
+      }
+
+      const whole = BigInt(wholePart || "0");
+      const frac = BigInt((fracPart + "0".repeat(18)).slice(0, 18));
+      return whole * 10n ** 18n + frac;
+    } catch {
+      return null;
+    }
+  };
+
+  const getSectorClass = (nft) => {
+    const text = `${nft?.name || ""} ${nft?.description || ""}`.toLowerCase();
+
+    if (/samurai|katana|ronin|shogun|warrior/.test(text)) return "Samurai";
+    if (/neural|synapse|mind|brain|network/.test(text)) return "Neural";
+    if (/wasteland|desert|ruin|dystopia|post-apocalyptic/.test(text)) {
+      return "Wasteland";
+    }
+    if (/cyber|neon|circuit|robot|ai|futur/.test(text)) return "Cybernetic";
+
+    return "Unclassified";
+  };
+
   useEffect(() => {
     fetchAllNFTs();
   }, [fetchAllNFTs]);
@@ -77,18 +118,97 @@ function MarketPlace() {
     }
   };
 
-  const nfts = marketData?.allNFTs || [];
+  const handleBuy = async (tokenId, price) => {
+    try {
+      setActionLoadingTokenId(tokenId.toString());
+      await buyNFT(tokenId, price);
+      await fetchAllNFTs();
+    } finally {
+      setActionLoadingTokenId(null);
+    }
+  };
+
+  const openFilterSidebar = () => {
+    setSidebarMode("filters");
+    setIsFilterOpen(true);
+  };
+
+  const openNftDetailsSidebar = (nft) => {
+    setSelectedNft(nft);
+    setSidebarMode("nftDetails");
+    setIsFilterOpen(true);
+  };
+
+  const nfts = useMemo(() => marketData?.allNFTs || [], [marketData?.allNFTs]);
   const listedNFTs = nfts.filter((nft) => nft.isListed);
   const ownedNFTs = nfts.filter(
     (nft) => nft.owner?.toLowerCase?.() === connectedAddress,
   );
 
-  const displayNFTs =
+  const baseNFTs =
     selectedTab === "all"
       ? nfts
       : selectedTab === "listed"
       ? listedNFTs
       : ownedNFTs;
+
+  const categoryCounts = useMemo(() => {
+    const counts = {
+      Cybernetic: 0,
+      Samurai: 0,
+      Wasteland: 0,
+      Neural: 0,
+      Unclassified: 0,
+    };
+
+    nfts.forEach((nft) => {
+      const sector = getSectorClass(nft);
+      counts[sector] = (counts[sector] || 0) + 1;
+    });
+
+    return counts;
+  }, [nfts]);
+
+  const displayNFTs = useMemo(() => {
+    const searchText = filters.search.trim().toLowerCase();
+    const minWei = parseEthToWei(filters.minPrice);
+    const maxWei = parseEthToWei(filters.maxPrice);
+
+    return baseNFTs.filter((nft) => {
+      const nftText = `${nft.name || ""} ${nft.description || ""} ${
+        nft.owner || ""
+      } ${nft.tokenId?.toString?.() || ""}`.toLowerCase();
+
+      const searchPass = searchText ? nftText.includes(searchText) : true;
+      const nftSector = getSectorClass(nft);
+      const categoryPass =
+        filters.categories.length === 0 ||
+        filters.categories.includes(nftSector);
+
+      const priceWei = BigInt(nft.price ?? 0);
+      const minPass = minWei === null ? true : priceWei >= minWei;
+      const maxPass = maxWei === null ? true : priceWei <= maxWei;
+      const listedPass = filters.listedOnly ? Boolean(nft.isListed) : true;
+      const nftOwner = nft.owner?.toLowerCase?.();
+      const ownerPass =
+        filters.ownerMode === "mine"
+          ? !!connectedAddress && nftOwner === connectedAddress
+          : filters.ownerMode === "others"
+          ? !connectedAddress || nftOwner !== connectedAddress
+          : true;
+
+      return (
+        searchPass &&
+        categoryPass &&
+        minPass &&
+        maxPass &&
+        listedPass &&
+        ownerPass
+      );
+    });
+  }, [baseNFTs, filters, connectedAddress]);
+
+  const featuredListedNFTs = displayNFTs.filter((nft) => nft.isListed);
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
@@ -115,7 +235,29 @@ function MarketPlace() {
         </span>
       </div>
 
-      <FilterSidebar isOpen={isFilterOpen} setIsOpen={setIsFilterOpen} />
+      <Sidebar
+        isOpen={isFilterOpen}
+        setIsOpen={setIsFilterOpen}
+        mode={sidebarMode}
+        selectedNft={selectedNft}
+        filters={filters}
+        onFiltersChange={setFilters}
+        categoryCounts={categoryCounts}
+        hasConnectedWallet={Boolean(connectedAddress)}
+        shortAddress={shortAddress}
+        formatPriceInEth={formatPriceInEth}
+        isSelectedNftOwner={
+          !!connectedAddress &&
+          selectedNft?.owner?.toLowerCase?.() === connectedAddress
+        }
+        isSelectedNftListed={Boolean(selectedNft?.isListed)}
+        isActionLoading={
+          actionLoadingTokenId === (selectedNft?.tokenId?.toString?.() || "")
+        }
+        onList={handleList}
+        onUnlist={handleUnlist}
+        onBuy={handleBuy}
+      />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
@@ -146,7 +288,7 @@ function MarketPlace() {
 
           <div className="flex gap-3">
             <button
-              onClick={() => setIsFilterOpen(true)}
+              onClick={openFilterSidebar}
               className="flex items-center gap-2 border border-white/20 px-5 py-2.5 text-[11px] font-mono text-white uppercase hover:bg-white/5 transition-all hover:border-white/40"
             >
               <Filter className="w-3.5 h-3.5" /> FILTERS
@@ -202,7 +344,7 @@ function MarketPlace() {
               {selectedTab === tab.id && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute bottom-0 left-0 right-0 h-[1px] bg-white"
+                  className="absolute bottom-0 left-0 right-0 h-px bg-white"
                 />
               )}
             </button>
@@ -210,7 +352,7 @@ function MarketPlace() {
         </motion.div>
 
         {/* HORIZONTAL SCROLL SECTION - FEATURED LISTED NFTS */}
-        {listedNFTs.length > 0 && (
+        {featuredListedNFTs.length > 0 && (
           <div className="mb-16">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
@@ -246,11 +388,12 @@ function MarketPlace() {
               className="flex gap-5 overflow-x-auto scrollbar-hide pb-4"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
-              {listedNFTs.slice(0, 10).map((nft, idx) => (
+              {featuredListedNFTs.slice(0, 10).map((nft, idx) => (
                 <motion.div
                   key={idx}
+                  onClick={() => openNftDetailsSidebar(nft)}
                   whileHover={{ y: -5, scale: 1.02 }}
-                  className="flex-none w-64 hover:bg-white/5 hover:border-r hover:border-l border-white/10 rounded-lg overflow-hidden group hover:border-white/30 transition-all cursor-pointer"
+                  className="flex-none w-64 hover:bg-white/5 hover:border-r hover:border-l border-white rounded-lg overflow-hidden group hover:border-white/30 transition-all cursor-pointer border-t border-b"
                 >
                   <div className="relative h-48 overflow-hidden">
                     <img
@@ -300,10 +443,10 @@ function MarketPlace() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ delay: index * 0.05 }}
                   whileHover={{ y: -8 }}
-                  className="group relative bg-gradient-to-b from-white/5 to-transparent border-r border-l border-white rounded-lg overflow-hidden hover:border-white hover:border-b hover:border-t hover:border-r-0 hover:border-l-0 transition-all duration-300"
+                  className="group relative bg-linear-to-b from-white/5 to-transparent border-r border-l border-white rounded-lg overflow-hidden hover:border-white hover:border-b hover:border-t hover:border-r-0 hover:border-l-0 transition-all duration-300"
                 >
                   {/* Card Glow Effect */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
                   {/* Image Container */}
                   <div className="relative aspect-square overflow-hidden bg-black/40">
@@ -339,7 +482,7 @@ function MarketPlace() {
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex-1">
-                        <h3 className="text-sm font-bold uppercase tracking-tight truncate">
+                        <h3 className="text-sm font-bold uppercase tracking-tight truncate text-white/50">
                           {nft.name}
                         </h3>
                         <p className="text-[8px] font-mono text-white/30 mt-1">
@@ -348,6 +491,7 @@ function MarketPlace() {
                       </div>
                       <Eye
                         size={12}
+                        onClick={() => openNftDetailsSidebar(nft)}
                         className="text-white/20 group-hover:text-white/60 transition-colors"
                       />
                     </div>
@@ -367,11 +511,7 @@ function MarketPlace() {
                     <button
                       onClick={() => {
                         if (!isOwner) {
-                          window.open(
-                            nft.tokenURI,
-                            "_blank",
-                            "noopener,noreferrer",
-                          );
+                          openNftDetailsSidebar(nft);
                           return;
                         }
                         if (isListed) {

@@ -40,13 +40,17 @@ export const MarketPlaceProvider = ({ children }) => {
     return error?.message || "Something went wrong. Please try again.";
   };
 
+  const updateTxToast = (id, message) => {
+    toast.loading(message, { id });
+  };
+
   //=======================================================
   // WRITE FUNCTIONS
   //=======================================================
 
   //function to create a new NFT and list it on the marketplace
   const createNFT = async (metadata) => {
-    const toastId = toast.loading("Minting your NFT...");
+    const toastId = toast.loading("Preparing mint transaction...");
     setIsLoading(true);
     try {
       if (!address || !client) {
@@ -62,6 +66,8 @@ export const MarketPlaceProvider = ({ children }) => {
 
       const contract = await getMarketplaceContract();
 
+      updateTxToast(toastId, "Please confirm mint in your wallet...");
+
       //preparecontract call
       const transaction = await prepareContractCall({
         contract,
@@ -74,6 +80,7 @@ export const MarketPlaceProvider = ({ children }) => {
         ],
       });
 
+      updateTxToast(toastId, "Submitting mint transaction to blockchain...");
       const receipt = await sendTransaction({ transaction, account });
       toast.success("NFT minted successfully!", { id: toastId });
       console.log("Transaction receipt:", receipt);
@@ -91,7 +98,8 @@ export const MarketPlaceProvider = ({ children }) => {
 
   //   function to list an NFT on the marketplace
   const listNFT = async (tokenId) => {
-    const toastId = toast.loading("Listing NFT...");
+    const toastId = toast.loading("Preparing listing transaction...");
+    setIsLoading(true);
     try {
       if (!address || !client) {
         throw new Error("No active account found. Please connect your wallet.");
@@ -99,12 +107,15 @@ export const MarketPlaceProvider = ({ children }) => {
 
       const contract = await getMarketplaceContract();
 
+      updateTxToast(toastId, "Please confirm listing in your wallet...");
+
       const transaction = await prepareContractCall({
         contract,
         method: "listNFT",
         params: [tokenId],
       });
 
+      updateTxToast(toastId, "Submitting listing transaction to blockchain...");
       const receipt = await sendTransaction({ transaction, account });
       toast.success("NFT listed successfully!", { id: toastId });
       console.log("Transaction receipt:", receipt);
@@ -115,12 +126,15 @@ export const MarketPlaceProvider = ({ children }) => {
         id: toastId,
       });
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   //function to delist an NFT from the marketplace
   const delistNFT = async (tokenId) => {
-    const toastId = toast.loading("Delisting NFT...");
+    const toastId = toast.loading("Preparing delist transaction...");
+    setIsLoading(true);
     try {
       if (!address || !client) {
         throw new Error("No active account found. Please connect your wallet.");
@@ -128,12 +142,15 @@ export const MarketPlaceProvider = ({ children }) => {
 
       const contract = await getMarketplaceContract();
 
+      updateTxToast(toastId, "Please confirm delist in your wallet...");
+
       const transaction = await prepareContractCall({
         contract,
         method: "unlistNFT",
         params: [tokenId],
       });
 
+      updateTxToast(toastId, "Submitting delist transaction to blockchain...");
       const receipt = await sendTransaction({ transaction, account });
       toast.success("NFT delisted successfully!", { id: toastId });
       console.log("Transaction receipt:", receipt);
@@ -144,12 +161,15 @@ export const MarketPlaceProvider = ({ children }) => {
         id: toastId,
       });
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   // function to buy an NFT from the marketplace
   const buyNFT = async (tokenId, price) => {
-    const toastId = toast.loading("Buying NFT...");
+    const toastId = toast.loading("Preparing purchase transaction...");
+    setIsLoading(true);
     try {
       if (!address || !client) {
         throw new Error("No active account found. Please connect your wallet.");
@@ -160,6 +180,8 @@ export const MarketPlaceProvider = ({ children }) => {
 
       const contract = await getMarketplaceContract();
 
+      updateTxToast(toastId, "Please confirm purchase in your wallet...");
+
       const transaction = await prepareContractCall({
         contract,
         method: "buyNFT",
@@ -167,6 +189,10 @@ export const MarketPlaceProvider = ({ children }) => {
         value: BigInt(price),
       });
 
+      updateTxToast(
+        toastId,
+        "Submitting purchase transaction to blockchain...",
+      );
       const receipt = await sendTransaction({ transaction, account });
       toast.success("NFT bought successfully!", { id: toastId });
       console.log("Transaction receipt:", receipt);
@@ -177,12 +203,15 @@ export const MarketPlaceProvider = ({ children }) => {
         id: toastId,
       });
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   //function to withdraw fees from the marketplace
   const withdrawFees = async () => {
-    const toastId = toast.loading("Withdrawing marketplace fees...");
+    const toastId = toast.loading("Preparing fee withdrawal...");
+    setIsLoading(true);
     try {
       if (!address || !client) {
         throw new Error("No active account found. Please connect your wallet.");
@@ -190,12 +219,18 @@ export const MarketPlaceProvider = ({ children }) => {
 
       const contract = await getMarketplaceContract();
 
+      updateTxToast(toastId, "Please confirm withdrawal in your wallet...");
+
       const transaction = await prepareContractCall({
         contract,
         method: "withdrawFees",
         params: [],
       });
 
+      updateTxToast(
+        toastId,
+        "Submitting withdrawal transaction to blockchain...",
+      );
       const receipt = await sendTransaction({ transaction, account });
       toast.success("Fees withdrawn successfully!", { id: toastId });
       console.log("Transaction receipt:", receipt);
@@ -206,6 +241,8 @@ export const MarketPlaceProvider = ({ children }) => {
         id: toastId,
       });
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
