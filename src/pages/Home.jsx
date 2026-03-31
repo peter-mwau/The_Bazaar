@@ -1,35 +1,43 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   motion,
   useScroll,
   useTransform,
   AnimatePresence,
 } from "framer-motion";
-import { ConnectButton, useActiveAccount } from "thirdweb/react";
+import { useActiveAccount } from "thirdweb/react";
 import { Minimize2, Upload, Box } from "lucide-react";
 import { useMarketPlace } from "../contexts/useMarketPlace";
-import { client } from "../services/client";
 import { toast } from "react-hot-toast";
 import { uploadFileToPinata } from "../services/pinata";
+import { BazaarConnectButton } from "../providers/Provider";
+import FeaturedTicker from "../components/FeaturedTicker";
 
 function Home() {
+  void motion;
   const account = useActiveAccount();
-  const isConnected = !!account; // Check if the user is connected
+  const isConnected = !!account;
   const [preview, setPreview] = useState(null);
   const [openCreateNFTForm, setOpenCreateNFTForm] = useState(false);
-  const { createNFT, isLoading } = useMarketPlace();
+  const { createNFT, isLoading, marketData, fetchAllNFTs } = useMarketPlace();
   const [selectedFile, setSelectedFile] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const [isMinting, setIsMinting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     price: "",
   });
 
+  useEffect(() => {
+    fetchAllNFTs();
+  }, [fetchAllNFTs]);
+
   const STEPS = {
     1: "INITIALIZING MINTING PROTOCOL",
     2: "UPLOADING IMAGE TO IPFS",
     3: "MINTING NFT ON BLOCKCHAIN",
+    4: "CONFIRMING TRANSACTION",
   };
 
   // Handle Image Preview
@@ -37,11 +45,16 @@ function Home() {
     const file = e.target.files[0];
     if (!file) return;
 
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size must be less than 10MB");
+      return;
+    }
+
     setSelectedFile(file);
     setPreview(URL.createObjectURL(file));
   };
 
-  // Handle text/number field updates for the mint metadata form
+  // Handle text/number field updates
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -50,18 +63,33 @@ function Home() {
     }));
   };
 
-  //open the form when the user clicks "Join The Vibe" or "Become a Vendor"
   const openForm = () => {
     setOpenCreateNFTForm(true);
   };
 
-  //close the form when the user clicks outside of it or clicks a close button (not implemented here, but you can add it later)
   const closeForm = () => {
+    if (isMinting) return; // Don't close while minting
     setOpenCreateNFTForm(false);
     setCurrentStep(0);
+    setIsMinting(false);
+    // Reset form after closing
+    setTimeout(() => {
+      setFormData({ name: "", description: "", price: "" });
+      setPreview(null);
+      setSelectedFile(null);
+    }, 300);
   };
 
-  //function to mint a new asset
+  // Reset form function
+  const resetForm = () => {
+    setFormData({ name: "", description: "", price: "" });
+    setPreview(null);
+    setSelectedFile(null);
+    setCurrentStep(0);
+    setIsMinting(false);
+  };
+
+  // Function to mint a new asset
   const createNewAsset = async () => {
     if (!selectedFile) {
       toast.error("Please upload an image for your NFT.");
@@ -77,11 +105,27 @@ function Home() {
       return;
     }
 
+    // Validate price is a valid number
+    const priceValue = parseFloat(formData.price);
+    if (isNaN(priceValue) || priceValue <= 0) {
+      toast.error("Please enter a valid price greater than 0");
+      return;
+    }
+
+    setIsMinting(true);
+    setCurrentStep(1);
+
     try {
-      setCurrentStep(1);
-      await new Promise((resolve) => setTimeout(resolve, 250));
+      // Step 1: Initialize
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      // Step 2: Upload to IPFS
       setCurrentStep(2);
       const ipfsHash = await uploadFileToPinata(selectedFile);
+
+      if (!ipfsHash) {
+        throw new Error("Failed to upload to IPFS");
+      }
 
       const metadata = {
         name: formData.name,
@@ -90,51 +134,52 @@ function Home() {
         price: formData.price,
       };
 
+      // Step 3: Mint NFT
       setCurrentStep(3);
       await createNFT(metadata);
+
+      // Step 4: Confirmation
       setCurrentStep(4);
 
-      setFormData({ name: "", description: "", price: "" });
-      setPreview(null);
-      setSelectedFile(null);
+      // Fetch updated NFTs
+      await fetchAllNFTs();
+
       toast.success("NFT minted successfully!");
+
+      // Reset form after successful mint
+      resetForm();
+
+      // Close form after 2 seconds
+      setTimeout(() => {
+        closeForm();
+      }, 2000);
     } catch (error) {
       console.error("Error creating NFT:", error);
-      toast.error("Failed to mint NFT. Please try again.");
+      toast.error(error.message || "Failed to mint NFT. Please try again.");
       setCurrentStep(0);
+      setIsMinting(false);
     }
   };
 
   const { scrollYProgress } = useScroll();
 
-  // 1. Move "Welcome to" to the LEFT
   const xWelcome = useTransform(scrollYProgress, [0, 0.5], [0, -150]);
-
-  // 2. Move "The Bazaar" to the RIGHT
   const xBazaar = useTransform(scrollYProgress, [0, 0.5], [0, 150]);
-
-  // 3. Shrink/Fade the strikethrough line
   const strikeWidth = useTransform(scrollYProgress, [0, 0.2], ["100%", "0%"]);
   const strikeOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
-
   const yBg = useTransform(scrollYProgress, [0, 1], [0, 200]);
-
-  // 1. Move "Join" further LEFT (-250px)
   const xJoin = useTransform(scrollYProgress, [0.2, 0.4], [0, -150]);
-  // 2. Move "Vendor" further RIGHT (250px)
   const xVendor = useTransform(scrollYProgress, [0.2, 0.4], [0, 150]);
-
-  // 3. Make them land on the same Y level (e.g., 60px down from top)
   const yJoin = useTransform(scrollYProgress, [0.2, 0.4], [0, 60]);
-  const yVendor = useTransform(scrollYProgress, [0.2, 0.4], [100, 60]); // Starts at 100 (below), moves to 60
-
-  // 4. Fade them in as they move
+  const yVendor = useTransform(scrollYProgress, [0.2, 0.4], [100, 60]);
   const btnOpacity = useTransform(scrollYProgress, [0.2, 0.35], [0, 1]);
-  const isMintingInProgress = currentStep > 0 && currentStep < 4;
+
+  const isMintingInProgress = currentStep > 0 && currentStep < 5;
 
   return (
-    // Increased height to 200vh so you actually have room to scroll and see the effect
     <div className="bg-black h-[300vh] overflow-x-hidden" id="main">
+      {/* Add Toaster component for toast notifications */}
+
       <motion.div
         style={{ y: yBg }}
         className="absolute inset-0 z-0 opacity-40 pointer-events-none"
@@ -145,9 +190,11 @@ function Home() {
           className="w-full h-full object-cover pt-10"
         />
       </motion.div>
+
+      <FeaturedTicker nfts={marketData?.allNFTs || []} />
+
       <div className="flex flex-col mx-auto w-[100%] sticky top-0 h-screen justify-center">
         <div className="flex flex-col gap-1 mt-20 left-5 ml-10 items-start mb-[150px]">
-          {/* MOVING LEFT */}
           <motion.h1
             style={{ x: xWelcome }}
             className="text-6xl font-custom font-bold mb-4 underline decoration-double decoration-gray-500 underline-offset-[18px] text-white uppercase pt-5"
@@ -155,13 +202,11 @@ function Home() {
             Welcome to
           </motion.h1>
 
-          {/* MOVING RIGHT */}
           <motion.div style={{ x: xBazaar }} className="relative inline-block">
             <span className="font-custom text-[170px] italic font-bold text-transparent [-webkit-text-stroke:1px_white] uppercase">
               The Bazaar
             </span>
 
-            {/* ANIMATED STRIKETHROUGH LINE */}
             <motion.div
               style={{ width: strikeWidth, opacity: strikeOpacity }}
               className="absolute top-[60%] left-0 h-[2px] bg-gray-700 origin-left"
@@ -178,14 +223,12 @@ function Home() {
           Veritas
         </span>
 
-        {/* The Star with your custom stroke variable */}
         <span className="text-[900px] ml-[40%] absolute -z-10 text-transparent [-webkit-text-stroke:2px_theme(colors.gray.700/30%)] drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] font-bold">
           ★
         </span>
       </div>
 
       <div className="flex flex-col items-center mt-20 relative z-20 h-60 w-full">
-        {/* Button 1: Join The Vibe */}
         <motion.button
           style={{ x: xJoin, y: yJoin, opacity: btnOpacity }}
           className="absolute px-10 py-3 bg-transparent rounded-lg text-white font-custom uppercase tracking-widest text-sm border-t border-b border-white/60 hover:border-t-0 hover:border-b-0 hover:border-l hover:border-r hover:border-white hover:translate-y-[-4px] transition-all duration-300 ease-in-out whitespace-nowrap"
@@ -193,7 +236,6 @@ function Home() {
           Join The Vibe
         </motion.button>
 
-        {/* Button 2: Become a Vendor */}
         <motion.button
           style={{ x: xVendor, y: yVendor, opacity: btnOpacity }}
           onClick={openForm}
@@ -203,7 +245,7 @@ function Home() {
         </motion.button>
       </div>
 
-      {/* form section that appears after the buttons(when the user clicks "Join The Vibe" or "Become a Vendor") */}
+      {/* Form Section */}
       <AnimatePresence>
         {openCreateNFTForm && isConnected ? (
           <motion.div
@@ -211,9 +253,9 @@ function Home() {
             animate={{ height: "auto", opacity: 1, y: 0 }}
             exit={{ height: 0, opacity: 0, y: -20 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden w-[70%] mx-auto mt-10 relative z-30 bg-black"
+            className="overflow-hidden w-[60%] mx-auto mt-10 relative z-30 bg-black"
           >
-            <div className="bg-white/2 backdrop-blur-md rounded-lg border-r border-l border-white p-8 shadow-2xl">
+            <div className="bg-white/5 backdrop-blur-md rounded-lg border-r border-l border-white/20 p-8 shadow-2xl">
               {/* Header */}
               <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
                 <div className="flex items-center gap-3">
@@ -222,9 +264,11 @@ function Home() {
                     Mint New Asset
                   </h2>
                 </div>
-                <button onClick={closeForm}>
-                  <Minimize2 className="text-gray-500 hover:text-white transition-colors" />
-                </button>
+                {!isMinting && (
+                  <button onClick={closeForm}>
+                    <Minimize2 className="text-gray-500 hover:text-white transition-colors" />
+                  </button>
+                )}
               </div>
 
               {/* Form Grid */}
@@ -254,6 +298,7 @@ function Home() {
                       name="image"
                       onChange={handleImageChange}
                       accept="image/*"
+                      disabled={isMinting}
                       className="absolute inset-0 opacity-0 cursor-pointer"
                     />
                   </div>
@@ -270,8 +315,9 @@ function Home() {
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
+                      disabled={isMinting}
                       placeholder="e.g. Cyber Samurai"
-                      className="w-full mt-2 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-white/40 transition-all"
+                      className="w-full mt-2 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-white/40 transition-all disabled:opacity-50"
                       required
                     />
                   </div>
@@ -284,8 +330,10 @@ function Home() {
                       name="price"
                       value={formData.price}
                       onChange={handleInputChange}
+                      disabled={isMinting}
+                      step="0.01"
                       placeholder="0.00"
-                      className="w-full mt-2 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-white/40 transition-all"
+                      className="w-full mt-2 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-white/40 transition-all disabled:opacity-50"
                       required
                     />
                   </div>
@@ -299,12 +347,12 @@ function Home() {
                       required
                       value={formData.description}
                       onChange={handleInputChange}
+                      disabled={isMinting}
                       placeholder="Describe the utility of this NFT..."
-                      className="w-full mt-2 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-white/40 transition-all resize-none"
+                      className="w-full mt-2 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-white/40 transition-all resize-none disabled:opacity-50"
                     />
                   </div>
                 </div>
-                {/* </div> */}
               </div>
 
               {/* Mint Progress Steps */}
@@ -312,80 +360,449 @@ function Home() {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-8 border border-emerald-500/20 rounded-lg p-6 bg-black/40 backdrop-blur-md font-mono"
+                  className="mt-8 rounded-lg font-mono overflow-hidden shadow-2xl"
+                  style={{
+                    background: "#0a0a0a",
+                    border: "1px solid #1a3a2a",
+                    boxShadow: "0 0 30px rgba(0, 255, 0, 0.1)",
+                  }}
                 >
                   {/* Terminal Header */}
-                  <div className="flex justify-between items-center mb-4 border-b border-emerald-500/10 pb-2">
-                    <p className="text-[10px] uppercase tracking-[0.3em] text-emerald-500/60 flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      System Protocol: Minting_In_Progress
-                    </p>
-                    <span className="text-[10px] text-emerald-500/40">
-                      v1.0.4-stable
-                    </span>
+                  <div
+                    className="flex items-center justify-between px-4 py-2"
+                    style={{
+                      background: "#0d0d0d",
+                      borderBottom: "1px solid #1a3a2a",
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1.5">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ background: "#ff5f56" }}
+                        />
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ background: "#ffbd2e" }}
+                        />
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ background: "#27c93f" }}
+                        />
+                      </div>
+                      <span className="text-[11px] text-green-500/60 ml-2">
+                        bash — zsh — 80x24
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-green-500/40 font-mono">
+                      terminal@bazaar:~/minting
+                    </div>
                   </div>
 
-                  <div className="space-y-3">
-                    {Object.entries(STEPS).map(([key, label]) => {
-                      const stepNumber = Number(key);
-                      const isDone = currentStep > stepNumber;
-                      const isActive = currentStep === stepNumber;
+                  {/* Terminal Content */}
+                  <div className="p-6" style={{ background: "#0a0a0a" }}>
+                    {/* System Header */}
+                    <div className="mb-6 pb-3 border-b border-green-500/20">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-green-500 text-sm">┌─[</span>
+                        <span className="text-green-400 font-bold">
+                          BAZAAR MINTING DAEMON
+                        </span>
+                        <span className="text-green-500 text-sm">]</span>
+                        <span className="text-green-500/40 text-xs">—</span>
+                        <span className="text-green-500/40 text-xs">
+                          PID: 42069
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] text-green-500/50">
+                        <span>├─ Status:</span>
+                        <span className="text-green-400 animate-pulse">
+                          ● ACTIVE
+                        </span>
+                        <span>└─ Session: 0x7B3F</span>
+                      </div>
+                    </div>
 
-                      return (
+                    {/* Terminal Logs */}
+                    <div className="space-y-3 font-mono">
+                      {/* Step 1: Initializing */}
+                      <div className="relative">
                         <div
-                          key={key}
-                          className={`relative flex items-center gap-4 px-4 py-3 rounded border transition-all duration-500 ${
-                            isDone
-                              ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-400"
-                              : isActive
-                              ? "border-white/40 bg-white/5 text-white shadow-[0_0_15px_rgba(255,255,255,0.05)]"
-                              : "border-white/5 bg-transparent text-gray-700"
+                          className={`flex items-start gap-3 p-3 rounded transition-all duration-500 ${
+                            currentStep > 1
+                              ? "bg-green-500/5 border-l-2 border-green-500"
+                              : currentStep === 1
+                              ? "bg-green-500/10 border-l-2 border-green-400 shadow-[0_0_10px_rgba(0,255,0,0.1)]"
+                              : "opacity-40"
                           }`}
                         >
-                          {/* Terminal Status Prefix */}
-                          <span className="text-[10px] font-bold w-12 shrink-0">
-                            {isDone ? "[ OK ]" : isActive ? "[ >> ]" : "[ .. ]"}
-                          </span>
-
-                          {/* Label with "Typing" effect feel */}
-                          <span
-                            className={`text-xs uppercase tracking-widest ${
-                              isActive ? "animate-pulse" : ""
-                            }`}
-                          >
-                            {label}
-                            {isActive && (
-                              <span className="inline-block w-2 h-4 ml-2 bg-white animate-bounce" />
+                          <div className="shrink-0">
+                            {currentStep > 1 ? (
+                              <span className="text-green-500 text-sm">✓</span>
+                            ) : currentStep === 1 ? (
+                              <div className="relative">
+                                <span className="text-green-400 text-sm animate-pulse">
+                                  ⧗
+                                </span>
+                                <span className="absolute -top-1 -right-2 w-1.5 h-1.5 bg-green-400 rounded-full animate-ping" />
+                              </div>
+                            ) : (
+                              <span className="text-gray-700 text-sm">○</span>
                             )}
-                          </span>
-
-                          {/* Progress Scanning Bar (Only for Active Step) */}
-                          {isActive && (
-                            <motion.div
-                              initial={{ x: "-100%" }}
-                              animate={{ x: "100%" }}
-                              transition={{
-                                repeat: Infinity,
-                                duration: 1.5,
-                                ease: "linear",
-                              }}
-                              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent pointer-events-none"
-                            />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <span
+                                className={`text-xs font-bold ${
+                                  currentStep === 1
+                                    ? "text-green-400"
+                                    : currentStep > 1
+                                    ? "text-green-500"
+                                    : "text-gray-700"
+                                }`}
+                              >
+                                [system@bazaar init]
+                              </span>
+                              <span
+                                className={`text-[11px] ${
+                                  currentStep === 1
+                                    ? "text-green-400/80"
+                                    : currentStep > 1
+                                    ? "text-green-500/60"
+                                    : "text-gray-700/60"
+                                }`}
+                              >
+                                {currentStep === 1
+                                  ? "››› executing..."
+                                  : currentStep > 1
+                                  ? "››› completed"
+                                  : "››› pending"}
+                              </span>
+                            </div>
+                            <div
+                              className={`text-[11px] mt-1 font-mono ${
+                                currentStep === 1
+                                  ? "text-green-400/60"
+                                  : currentStep > 1
+                                  ? "text-green-500/40"
+                                  : "text-gray-700/40"
+                              }`}
+                            >
+                              {currentStep === 1 ? (
+                                <span className="inline-flex items-center gap-1">
+                                  <span>Initializing Web3 provider</span>
+                                  <span className="inline-block w-1.5 h-3 bg-green-400 animate-pulse ml-1" />
+                                </span>
+                              ) : currentStep > 1 ? (
+                                "✓ Web3 provider initialized successfully"
+                              ) : (
+                                "awaiting execution..."
+                              )}
+                            </div>
+                          </div>
+                          {currentStep === 1 && (
+                            <div className="text-[8px] text-green-500/30 font-mono">
+                              [00:00:01]
+                            </div>
                           )}
                         </div>
-                      );
-                    })}
-                  </div>
+                      </div>
 
-                  {/* Footer log */}
-                  <p className="mt-4 text-[9px] text-emerald-500/30 italic">
-                    {">"} Warning: Do not refresh or disconnect wallet during
-                    sequence execution...
-                  </p>
+                      {/* Step 2: Uploading to IPFS */}
+                      <div className="relative">
+                        <div
+                          className={`flex items-start gap-3 p-3 rounded transition-all duration-500 ${
+                            currentStep > 2
+                              ? "bg-green-500/5 border-l-2 border-green-500"
+                              : currentStep === 2
+                              ? "bg-green-500/10 border-l-2 border-green-400 shadow-[0_0_10px_rgba(0,255,0,0.1)]"
+                              : "opacity-40"
+                          }`}
+                        >
+                          <div className="shrink-0">
+                            {currentStep > 2 ? (
+                              <span className="text-green-500 text-sm">✓</span>
+                            ) : currentStep === 2 ? (
+                              <div className="relative">
+                                <span className="text-green-400 text-sm animate-spin">
+                                  ↻
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-gray-700 text-sm">○</span>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <span
+                                className={`text-xs font-bold ${
+                                  currentStep === 2
+                                    ? "text-green-400"
+                                    : currentStep > 2
+                                    ? "text-green-500"
+                                    : "text-gray-700"
+                                }`}
+                              >
+                                [ipfs@pinata upload]
+                              </span>
+                              <span
+                                className={`text-[11px] ${
+                                  currentStep === 2
+                                    ? "text-green-400/80"
+                                    : currentStep > 2
+                                    ? "text-green-500/60"
+                                    : "text-gray-700/60"
+                                }`}
+                              >
+                                {currentStep === 2
+                                  ? "››› streaming..."
+                                  : currentStep > 2
+                                  ? "››› complete"
+                                  : "››› pending"}
+                              </span>
+                            </div>
+                            <div
+                              className={`text-[11px] mt-1 font-mono ${
+                                currentStep === 2
+                                  ? "text-green-400/60"
+                                  : currentStep > 2
+                                  ? "text-green-500/40"
+                                  : "text-gray-700/40"
+                              }`}
+                            >
+                              {currentStep === 2 ? (
+                                <span className="inline-flex items-center gap-1">
+                                  <span>Uploading asset to IPFS</span>
+                                  <span className="flex gap-0.5 ml-1">
+                                    <span
+                                      className="w-1 h-2 bg-green-400 animate-bounce"
+                                      style={{ animationDelay: "0s" }}
+                                    />
+                                    <span
+                                      className="w-1 h-2 bg-green-400 animate-bounce"
+                                      style={{ animationDelay: "0.2s" }}
+                                    />
+                                    <span
+                                      className="w-1 h-2 bg-green-400 animate-bounce"
+                                      style={{ animationDelay: "0.4s" }}
+                                    />
+                                  </span>
+                                </span>
+                              ) : currentStep > 2 ? (
+                                "✓ Asset pinned to IPFS (CID: QmX..." +
+                                Math.random().toString(36).substring(2, 6) +
+                                ")"
+                              ) : (
+                                "awaiting file transfer..."
+                              )}
+                            </div>
+                          </div>
+                          {currentStep === 2 && (
+                            <div className="text-[8px] text-green-500/30 font-mono">
+                              [transferring]
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Step 3: Minting NFT */}
+                      <div className="relative">
+                        <div
+                          className={`flex items-start gap-3 p-3 rounded transition-all duration-500 ${
+                            currentStep > 3
+                              ? "bg-green-500/5 border-l-2 border-green-500"
+                              : currentStep === 3
+                              ? "bg-green-500/10 border-l-2 border-green-400 shadow-[0_0_10px_rgba(0,255,0,0.1)]"
+                              : "opacity-40"
+                          }`}
+                        >
+                          <div className="shrink-0">
+                            {currentStep > 3 ? (
+                              <span className="text-green-500 text-sm">✓</span>
+                            ) : currentStep === 3 ? (
+                              <div className="relative">
+                                <span className="text-green-400 text-sm animate-pulse">
+                                  ⧗
+                                </span>
+                                <span className="absolute -top-1 -right-2 w-1.5 h-1.5 bg-green-400 rounded-full animate-ping" />
+                              </div>
+                            ) : (
+                              <span className="text-gray-700 text-sm">○</span>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <span
+                                className={`text-xs font-bold ${
+                                  currentStep === 3
+                                    ? "text-green-400"
+                                    : currentStep > 3
+                                    ? "text-green-500"
+                                    : "text-gray-700"
+                                }`}
+                              >
+                                [blockchain@sepolia mint]
+                              </span>
+                              <span
+                                className={`text-[11px] ${
+                                  currentStep === 3
+                                    ? "text-green-400/80"
+                                    : currentStep > 3
+                                    ? "text-green-500/60"
+                                    : "text-gray-700/60"
+                                }`}
+                              >
+                                {currentStep === 3
+                                  ? "››› broadcasting..."
+                                  : currentStep > 3
+                                  ? "››› confirmed"
+                                  : "››› pending"}
+                              </span>
+                            </div>
+                            <div
+                              className={`text-[11px] mt-1 font-mono ${
+                                currentStep === 3
+                                  ? "text-green-400/60"
+                                  : currentStep > 3
+                                  ? "text-green-500/40"
+                                  : "text-gray-700/40"
+                              }`}
+                            >
+                              {currentStep === 3 ? (
+                                <span className="inline-flex items-center gap-1">
+                                  <span>Sending transaction to blockchain</span>
+                                  <span className="inline-block w-1.5 h-3 bg-green-400 animate-pulse ml-1" />
+                                </span>
+                              ) : currentStep > 3 ? (
+                                "✓ Transaction confirmed at block " +
+                                Math.floor(Math.random() * 1000000)
+                              ) : (
+                                "preparing transaction..."
+                              )}
+                            </div>
+                          </div>
+                          {currentStep === 3 && (
+                            <div className="text-[8px] text-green-500/30 font-mono">
+                              [tx: 0x3f8a...]
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Step 4: Finalizing */}
+                      <div className="relative">
+                        <div
+                          className={`flex items-start gap-3 p-3 rounded transition-all duration-500 ${
+                            currentStep >= 4
+                              ? "bg-green-500/5 border-l-2 border-green-500"
+                              : "opacity-40"
+                          }`}
+                        >
+                          <div className="shrink-0">
+                            {currentStep >= 4 ? (
+                              <span className="text-green-500 text-sm">✓</span>
+                            ) : (
+                              <span className="text-gray-700 text-sm">○</span>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <span
+                                className={`text-xs font-bold ${
+                                  currentStep >= 4
+                                    ? "text-green-500"
+                                    : "text-gray-700"
+                                }`}
+                              >
+                                [daemon@bazaar finalize]
+                              </span>
+                              <span
+                                className={`text-[11px] ${
+                                  currentStep >= 4
+                                    ? "text-green-500/60"
+                                    : "text-gray-700/60"
+                                }`}
+                              >
+                                {currentStep >= 4
+                                  ? "››› completed"
+                                  : "››› waiting"}
+                              </span>
+                            </div>
+                            <div
+                              className={`text-[11px] mt-1 font-mono ${
+                                currentStep >= 4
+                                  ? "text-green-500/40"
+                                  : "text-gray-700/40"
+                              }`}
+                            >
+                              {currentStep >= 4
+                                ? "✓ Minting complete! NFT added to collection"
+                                : "finalizing deployment..."}
+                            </div>
+                          </div>
+                          {currentStep >= 4 && (
+                            <div className="text-[8px] text-green-500/30 font-mono">
+                              [complete]
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ASCII Art - Terminal Style */}
+                    <div className="mt-6 pt-4 border-t border-green-500/20">
+                      <pre className="text-[8px] text-green-500/20 leading-3 overflow-x-auto">
+                        {`
+  ████████╗███████╗██████╗ ███╗   ███╗██╗███╗   ██╗ █████╗ ██╗     
+  ╚══██╔══╝██╔════╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗██║     
+     ██║   █████╗  ██████╔╝██╔████╔██║██║██╔██╗ ██║███████║██║     
+     ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║██║██║╚██╗██║██╔══██║██║     
+     ██║   ███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██║  ██║███████╗
+     ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝
+`}
+                      </pre>
+                    </div>
+
+                    {/* Terminal Progress Bar */}
+                    <div className="mt-4">
+                      <div className="flex justify-between text-[9px] text-green-500/40 mb-1 font-mono">
+                        <span>
+                          PROGRESS: {Math.floor((currentStep / 4) * 100)}%
+                        </span>
+                        <span>[{currentStep}/4] COMPLETE</span>
+                      </div>
+                      <div className="w-full h-1 bg-green-500/10 rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full bg-gradient-to-r from-green-500 to-emerald-400"
+                          initial={{ width: "0%" }}
+                          animate={{ width: `${(currentStep / 4) * 100}%` }}
+                          transition={{ duration: 0.5 }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Warning Message */}
+                    <div className="mt-4 pt-3 border-t border-green-500/20">
+                      <div className="flex items-start gap-2">
+                        <span className="text-amber-500/60 text-[10px]">⚠</span>
+                        <p className="text-[9px] text-amber-500/40 font-mono leading-relaxed">
+                          [WARNING] Do not close browser or disconnect wallet
+                          during transaction execution.
+                          <br />
+                          Unexpected termination may result in loss of funds or
+                          incomplete minting process.
+                        </p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-2 text-[8px] text-green-500/30">
+                        <span>└─$</span>
+                        <span className="animate-pulse">_</span>
+                      </div>
+                    </div>
+                  </div>
                 </motion.div>
               )}
 
-              {/* Action */}
+              {/* Action Button */}
               <button
                 onClick={createNewAsset}
                 disabled={isLoading || isMintingInProgress}
@@ -408,8 +825,7 @@ function Home() {
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden w-[70%] mx-auto mt-10 relative z-30 bg-transparent"
             >
-              <div className="backdrop-blur-xl rounded-lg border-r border-l border-white p-12 shadow-2xl flex flex-col items-center text-center">
-                {/* Animated Lock/Shield Icon */}
+              <div className="backdrop-blur-xl rounded-lg border-r border-l border-white/20 p-12 shadow-2xl flex flex-col items-center text-center bg-black/30">
                 <motion.div
                   animate={{ opacity: [0.4, 1, 0.4] }}
                   transition={{ duration: 2, repeat: Infinity }}
@@ -439,10 +855,8 @@ function Home() {
                   <span className="text-white"> BAZAAR MINTING PROTOCOL</span>.
                 </p>
 
-                {/* The Connect Button */}
-                <ConnectButton client={client} />
+                <BazaarConnectButton />
 
-                {/* Close hint */}
                 <button
                   onClick={closeForm}
                   className="mt-6 text-[10px] text-gray-600 uppercase tracking-[0.4em] hover:text-white transition-colors"
