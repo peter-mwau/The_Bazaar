@@ -30,6 +30,11 @@ function MarketPlace() {
     }
   };
 
+  const shortAddress = (address) => {
+    if (!address) return "Unknown";
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
   useEffect(() => {
     fetchAllNFTs();
   }, [fetchAllNFTs]);
@@ -132,6 +137,9 @@ function MarketPlace() {
                           </h3>
                           <p className="text-[10px] text-gray-500 font-mono uppercase mt-1">
                             ID: {Number(nft.tokenId)}
+                          </p>
+                          <p className="text-[10px] text-gray-500 font-mono uppercase mt-1">
+                            Owner: {shortAddress(nft.owner)}
                           </p>
                         </div>
                         <div className="text-right">

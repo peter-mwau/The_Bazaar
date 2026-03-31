@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   motion,
   useScroll,
@@ -11,13 +11,15 @@ import { useMarketPlace } from "../contexts/useMarketPlace";
 import { toast } from "react-hot-toast";
 import { uploadFileToPinata } from "../services/pinata";
 import { BazaarConnectButton } from "../providers/Provider";
+import FeaturedTicker from "../components/FeaturedTicker";
 
 function Home() {
+  void motion;
   const account = useActiveAccount();
   const isConnected = !!account;
   const [preview, setPreview] = useState(null);
   const [openCreateNFTForm, setOpenCreateNFTForm] = useState(false);
-  const { createNFT, isLoading, fetchAllNFTs } = useMarketPlace();
+  const { createNFT, isLoading, marketData, fetchAllNFTs } = useMarketPlace();
   const [selectedFile, setSelectedFile] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [isMinting, setIsMinting] = useState(false);
@@ -26,6 +28,10 @@ function Home() {
     description: "",
     price: "",
   });
+
+  useEffect(() => {
+    fetchAllNFTs();
+  }, [fetchAllNFTs]);
 
   const STEPS = {
     1: "INITIALIZING MINTING PROTOCOL",
@@ -185,6 +191,8 @@ function Home() {
         />
       </motion.div>
 
+      <FeaturedTicker nfts={marketData?.allNFTs || []} />
+
       <div className="flex flex-col mx-auto w-[100%] sticky top-0 h-screen justify-center">
         <div className="flex flex-col gap-1 mt-20 left-5 ml-10 items-start mb-[150px]">
           <motion.h1
@@ -245,7 +253,7 @@ function Home() {
             animate={{ height: "auto", opacity: 1, y: 0 }}
             exit={{ height: 0, opacity: 0, y: -20 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden w-[70%] mx-auto mt-10 relative z-30 bg-black"
+            className="overflow-hidden w-[60%] mx-auto mt-10 relative z-30 bg-black"
           >
             <div className="bg-white/5 backdrop-blur-md rounded-lg border-r border-l border-white/20 p-8 shadow-2xl">
               {/* Header */}
