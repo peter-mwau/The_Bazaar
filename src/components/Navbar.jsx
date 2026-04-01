@@ -15,7 +15,8 @@ function Navbar() {
       <nav className="max-w-7xl w-full flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link to="/" className="text-lg font-bold text-white flex-shrink-0">
-          The Bazaar
+          {/* The Bazaar */}
+          <img src="/thebazaar_logo.png" className="h-15 w-20" />
         </Link>
 
         {/* Desktop Navigation */}
