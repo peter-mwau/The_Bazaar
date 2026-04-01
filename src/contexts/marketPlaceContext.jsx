@@ -1,5 +1,6 @@
 import MarketPlaceABI from "../../artifacts/contracts/MarketPlace.sol/MarketPlace.json";
 import { client } from "../services/client";
+import { getEnv } from "../config/env";
 import { MarketPlaceContext } from "./marketPlaceStore";
 import { useActiveAccount } from "thirdweb/react";
 import {
@@ -12,8 +13,7 @@ import {
 import { toast } from "react-hot-toast";
 import { useState } from "react";
 
-const MARKETPLACE_ADDRESS = import.meta.env
-  .VITE_SEPOLIA_MARKETPLACE_CONTRACT_ADDRESS;
+const MARKETPLACE_ADDRESS = getEnv("VITE_SEPOLIA_MARKETPLACE_CONTRACT_ADDRESS");
 const MARKETPLACE_ABI = MarketPlaceABI.abi;
 const SEPOLIA_CHAIN_ID = 11155111;
 

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import TokenABI from "../../artifacts/contracts/Token.sol/MyToken.json";
 import { client } from "../services/client";
+import { getEnv } from "../config/env";
 import { TokenContext } from "./tokenStore";
 import { useActiveAccount } from "thirdweb/react";
 import {
@@ -12,7 +13,7 @@ import {
 } from "thirdweb";
 import { toast } from "react-hot-toast";
 
-const TOKEN_ADDRESS = import.meta.env.VITE_SEPOLIA_TOKEN_CONTRACT_ADDRESS;
+const TOKEN_ADDRESS = getEnv("VITE_SEPOLIA_TOKEN_CONTRACT_ADDRESS");
 const TOKEN_ABI = TokenABI.abi;
 const SEPOLIA_CHAIN_ID = 11155111;
 

@@ -1,8 +1,9 @@
 import axios from 'axios';
 import FormData from 'form-data';
+import { getEnv } from '../config/env';
 
-const pinataApiKey = import.meta.env.VITE_APP_PINATA_API_KEY;
-const pinataSecretApiKey = import.meta.env.VITE_APP_PINATA_SECRET_KEY;
+const pinataApiKey = getEnv('VITE_APP_PINATA_API_KEY');
+const pinataSecretApiKey = getEnv('VITE_APP_PINATA_SECRET_KEY');
 
 export const uploadFileToPinata = async (file) => {
     const url = 'https://api.pinata.cloud/pinning/pinFileToIPFS';
@@ -88,7 +89,7 @@ export const getPinnedData = async () => {
 
 export const uploadVCToIPFS = async (vcData, subjectDid) => {
     const url = `https://api.pinata.cloud/pinning/pinJSONToIPFS`;
-    
+
     // Extract just the DID identifier (e.g., "z6Mkg..." from "did:key:z6Mkg...")
     const didIdentifier = subjectDid.split(':').pop();
     const filename = `VC-${didIdentifier}.json`;
