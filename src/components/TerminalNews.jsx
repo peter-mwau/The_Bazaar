@@ -76,7 +76,7 @@ const TerminalNews = () => {
   };
 
   return (
-    <section className="py-16 bg-black px-4 sm:px-8 relative overflow-hidden">
+    <section className="py-16 bg-black px-4 my-30 sm:px-8 relative overflow-hidden">
       {/* Vintage Scratch Texture */}
       <div className="absolute inset-0 pointer-events-none opacity-20">
         <div

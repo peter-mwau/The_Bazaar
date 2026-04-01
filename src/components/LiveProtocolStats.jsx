@@ -163,7 +163,7 @@ const ProtocolStats = () => {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full py-24 bg-black border-y border-white/5 overflow-hidden"
+      className="relative w-full py-35 my-20 bg-black border-y border-white/5 overflow-hidden"
     >
       {/* Animated Gradient Background */}
       <motion.div

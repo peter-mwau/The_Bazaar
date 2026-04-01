@@ -38,6 +38,10 @@ const Footer = () => {
           <div className="space-y-6 lg:col-span-1">
             <Link to="/" className="inline-block group">
               <h2 className="text-2xl font-custom italic font-bold tracking-tighter text-transparent [-webkit-text-stroke:0.5px_white] transition-all duration-300 group-hover:[-webkit-text-stroke:0.8px_white]">
+                <img
+                  src="/thebazaar_logo.png"
+                  className="h-15 w-20 mb-3 items-center mx-auto text-center"
+                />
                 THE BAZAAR
               </h2>
             </Link>

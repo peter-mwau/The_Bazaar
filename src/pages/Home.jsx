@@ -181,7 +181,7 @@ function Home() {
   const isMintingInProgress = currentStep > 0 && currentStep < 5;
 
   return (
-    <div className="bg-black h-[300vh] overflow-x-hidden" id="main">
+    <div className="bg-black h-auto overflow-x-hidden" id="main">
       {/* Add Toaster component for toast notifications */}
 
       <motion.div
@@ -232,7 +232,7 @@ function Home() {
         </span>
       </div>
 
-      <div className="flex flex-col items-center mt-20 relative z-20 h-60 w-full">
+      <div className="flex flex-col items-center mt-35 mb-20 py-10 relative z-20 h-60 w-full">
         <motion.button
           style={{ x: xJoin, y: yJoin, opacity: btnOpacity }}
           className="absolute px-10 py-3 bg-transparent rounded-lg text-white font-custom uppercase tracking-widest text-sm border-t border-b border-white/60 hover:border-t-0 hover:border-b-0 hover:border-l hover:border-r hover:border-white hover:translate-y-[-4px] transition-all duration-300 ease-in-out whitespace-nowrap"

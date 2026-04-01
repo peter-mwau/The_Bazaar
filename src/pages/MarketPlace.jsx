@@ -13,6 +13,8 @@ import {
   Shield,
   Award,
   TrendingUp,
+  Sparkles,
+  Layers,
 } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 
@@ -23,7 +25,8 @@ function MarketPlace() {
   const [sidebarMode, setSidebarMode] = useState("filters");
   const [selectedNft, setSelectedNft] = useState(null);
   const [actionLoadingTokenId, setActionLoadingTokenId] = useState(null);
-  const [selectedTab, setSelectedTab] = useState("all"); // all, listed, owned
+  const [selectedTab, setSelectedTab] = useState("all");
+  const [scratchedTexture, setScratchedTexture] = useState(null);
   const [filters, setFilters] = useState({
     search: "",
     categories: [],
@@ -36,6 +39,51 @@ function MarketPlace() {
   const account = useActiveAccount();
   const connectedAddress = account?.address?.toLowerCase();
   const MotionDiv = motion.div;
+
+  // Generate scratched texture for cards
+  useEffect(() => {
+    const generateScratchedTexture = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 400;
+      canvas.height = 600;
+      const ctx = canvas.getContext("2d");
+
+      ctx.fillStyle = "#0a0a0a";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Add scratches
+      for (let i = 0; i < 200; i++) {
+        ctx.beginPath();
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const width = Math.random() * 2 + 0.5;
+        const angle = Math.random() * Math.PI;
+        const length = Math.random() * 30 + 5;
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.1 + 0.02})`;
+        ctx.fillRect(0, 0, width, length);
+        ctx.restore();
+      }
+
+      // Add dust particles
+      for (let i = 0; i < 500; i++) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.05})`;
+        ctx.fillRect(
+          Math.random() * canvas.width,
+          Math.random() * canvas.height,
+          Math.random() * 1.5,
+          Math.random() * 1.5,
+        );
+      }
+
+      return canvas.toDataURL();
+    };
+
+    setScratchedTexture(generateScratchedTexture());
+  }, []);
 
   const formatPriceInEth = (weiValue) => {
     try {
@@ -222,17 +270,22 @@ function MarketPlace() {
     }
   };
 
+  // Custom clip path for vintage card shape
+  const vintageClipPath =
+    "polygon(2% 0%, 98% 1%, 100% 98%, 1% 100%, 0% 50%, 1% 2%)";
+
   return (
     <div className="bg-black min-h-screen pt-24 pb-20 relative overflow-x-hidden">
       {/* Background Elements */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.03),transparent_50%)]" />
-        <span className="absolute top-1/4 left-1/4 text-[300px] text-transparent [-webkit-text-stroke:1px_rgba(255,255,255,0.02)] font-bold rotate-12">
-          ★
-        </span>
-        <span className="absolute bottom-1/4 right-1/4 text-[400px] text-transparent [-webkit-text-stroke:1px_rgba(255,255,255,0.02)] font-bold -rotate-12">
-          ✦
-        </span>
+        <div
+          className="absolute inset-0 opacity-30"
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='grid' width='60' height='60' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 60 0 L 0 0 0 60' fill='none' stroke='rgba(255,255,255,0.02)' stroke-width='0.5'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23grid)' /%3E%3C/svg%3E\")",
+          }}
+        />
       </div>
 
       <Sidebar
@@ -266,14 +319,14 @@ function MarketPlace() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between"
         >
-          <div className="border-l-2 border-white/40 pl-6">
+          <div className="border-l-2 border-white/20 pl-6">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-1 h-4 bg-emerald-500/60" />
               <p className="text-[10px] font-mono text-emerald-500/60 uppercase tracking-[0.4em]">
                 // BAZAAR_MARKETPLACE
               </p>
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-custom font-bold text-white uppercase tracking-tighter italic">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white uppercase tracking-tighter">
               Asset{" "}
               <span className="text-transparent [-webkit-text-stroke:0.8px_white]">
                 Inventory
@@ -361,7 +414,7 @@ function MarketPlace() {
                   FEATURED_LISTINGS
                 </h2>
                 <div className="flex items-center gap-1">
-                  <Zap size={10} className="text-emerald-500/60" />
+                  <Sparkles size={10} className="text-emerald-500/60" />
                   <span className="text-[8px] text-emerald-500/40">
                     LIVE_AUCTION
                   </span>
@@ -370,13 +423,13 @@ function MarketPlace() {
               <div className="flex gap-2">
                 <button
                   onClick={scrollLeft}
-                  className="p-1.5 border border-white/20 hover:border-white/40 transition-all rounded"
+                  className="p-1.5 border border-white/20 hover:border-white/40 transition-all rounded hover:bg-white/5"
                 >
                   <ChevronLeft size={14} />
                 </button>
                 <button
                   onClick={scrollRight}
-                  className="p-1.5 border border-white/20 hover:border-white/40 transition-all rounded"
+                  className="p-1.5 border border-white/20 hover:border-white/40 transition-all rounded hover:bg-white/5"
                 >
                   <ChevronRight size={14} />
                 </button>
@@ -392,30 +445,67 @@ function MarketPlace() {
                 <motion.div
                   key={idx}
                   onClick={() => openNftDetailsSidebar(nft)}
-                  whileHover={{ y: -5, scale: 1.02 }}
-                  className="flex-none w-64 hover:bg-white/5 hover:border-r hover:border-l border-white rounded-lg overflow-hidden group hover:border-white/30 transition-all cursor-pointer border-t border-b"
+                  whileHover={{ y: -5 }}
+                  className="flex-none w-64 group cursor-pointer"
                 >
-                  <div className="relative h-48 overflow-hidden">
-                    <img
-                      src={nft.tokenURI}
-                      alt={nft.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  <div className="relative w-full h-[320px]">
+                    {/* Vintage Card Background */}
+                    <div
+                      className="absolute inset-0 bg-black"
+                      style={{
+                        clipPath: vintageClipPath,
+                        background: scratchedTexture
+                          ? `url(${scratchedTexture})`
+                          : "#0a0a0a",
+                        backgroundSize: "cover",
+                      }}
                     />
-                    <div className="absolute top-2 right-2 bg-black/60 backdrop-blur px-2 py-0.5 rounded text-[8px] font-mono text-emerald-400">
-                      LISTED
+
+                    {/* Border Effect */}
+                    <div
+                      className="absolute inset-0 pointer-events-none"
+                      style={{
+                        clipPath: vintageClipPath,
+                        border: "1px solid rgba(255,255,255,0.15)",
+                      }}
+                    />
+
+                    {/* Content */}
+                    <div
+                      className="relative h-full w-full flex flex-col p-3"
+                      style={{ clipPath: vintageClipPath }}
+                    >
+                      <div className="flex-grow overflow-hidden relative">
+                        <img
+                          src={nft.tokenURI}
+                          className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105 grayscale group-hover:grayscale-0"
+                          alt={nft.name}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                      </div>
+
+                      <div className="mt-2 space-y-1">
+                        <p className="text-[8px] font-mono text-white/40 uppercase tracking-wider">
+                          ASSET #{nft.tokenId?.toString?.()?.slice(0, 6)}
+                        </p>
+                        <p className="text-[10px] font-mono font-bold uppercase text-white/80 truncate">
+                          {nft.name}
+                        </p>
+                        <div className="flex justify-between items-center border-t border-white/10 pt-1">
+                          <span className="text-[7px] font-mono text-white/40">
+                            PRICE
+                          </span>
+                          <span className="text-[9px] font-bold text-white/90">
+                            {formatPriceInEth(nft.price)} ETH
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="p-3">
-                    <h3 className="text-xs font-bold uppercase truncate text-white/60">
-                      {nft.name}
-                    </h3>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="text-[9px] font-mono text-white/40">
-                        PRICE
-                      </span>
-                      <span className="text-[10px] font-bold text-white">
-                        {formatPriceInEth(nft.price)} ETH
-                      </span>
+
+                    {/* Corner Decorations */}
+                    <div className="absolute -top-0.5 -left-0.5 w-3 h-3">
+                      <div className="absolute top-0 left-0 w-2 h-px bg-white/30" />
+                      <div className="absolute top-0 left-0 w-px h-2 bg-white/30" />
                     </div>
                   </div>
                 </motion.div>
@@ -438,104 +528,179 @@ function MarketPlace() {
               return (
                 <MotionDiv
                   key={nft.tokenId || index}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ delay: index * 0.05 }}
-                  whileHover={{ y: -8 }}
-                  className="group relative bg-linear-to-b from-white/5 to-transparent border-r border-l border-white rounded-lg overflow-hidden hover:border-white hover:border-b hover:border-t hover:border-r-0 hover:border-l-0 transition-all duration-300"
+                  whileHover={{ y: -4 }}
+                  className="group cursor-pointer"
+                  onClick={() => openNftDetailsSidebar(nft)}
                 >
-                  {/* Card Glow Effect */}
-                  <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-
-                  {/* Image Container */}
-                  <div className="relative aspect-square overflow-hidden bg-black/40">
-                    <img
-                      src={nft.tokenURI}
-                      alt={nft.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  <div className="relative w-full aspect-[3/4]">
+                    {/* Vintage Card Background */}
+                    <div
+                      className="absolute inset-0 bg-black transition-all duration-300 group-hover:shadow-2xl"
+                      style={{
+                        clipPath: vintageClipPath,
+                        background: scratchedTexture
+                          ? `url(${scratchedTexture})`
+                          : "#0a0a0a",
+                        backgroundSize: "cover",
+                        boxShadow: "inset 0 0 30px rgba(0,0,0,0.5)",
+                      }}
                     />
 
-                    {/* Status Badges */}
-                    <div className="absolute top-3 left-3 flex gap-2">
-                      {isListed && (
-                        <div className="bg-emerald-500/20 backdrop-blur border border-emerald-500/30 px-2 py-0.5 rounded text-[8px] font-mono text-emerald-400 flex items-center gap-1">
-                          <Zap size={8} /> LISTED
-                        </div>
-                      )}
-                      {isOwner && (
-                        <div className="bg-blue-500/20 backdrop-blur border border-blue-500/30 px-2 py-0.5 rounded text-[8px] font-mono text-blue-400 flex items-center gap-1">
-                          <Shield size={8} /> OWNED
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Price Tag */}
-                    <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur border border-white/20 px-2 py-1 rounded">
-                      <p className="text-[10px] font-mono text-white/80">
-                        {formatPriceInEth(nft.price)} ETH
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex-1">
-                        <h3 className="text-sm font-bold uppercase tracking-tight truncate text-white/50">
-                          {nft.name}
-                        </h3>
-                        <p className="text-[8px] font-mono text-white/30 mt-1">
-                          #{Number(nft.tokenId)}
-                        </p>
-                      </div>
-                      <Eye
-                        size={12}
-                        onClick={() => openNftDetailsSidebar(nft)}
-                        className="text-white/20 group-hover:text-white/60 transition-colors"
-                      />
-                    </div>
-
-                    <p className="text-[9px] font-mono text-white/40 line-clamp-2 mb-3">
-                      {nft.description}
-                    </p>
-
-                    <div className="flex justify-between items-center text-[8px] font-mono text-white/30 mb-3">
-                      <span>OWNER</span>
-                      <span className="text-white/50">
-                        {shortAddress(nft.owner)}
-                      </span>
-                    </div>
-
-                    {/* Action Button */}
-                    <button
-                      onClick={() => {
-                        if (!isOwner) {
-                          openNftDetailsSidebar(nft);
-                          return;
-                        }
-                        if (isListed) {
-                          handleUnlist(nft.tokenId);
-                        } else {
-                          handleList(nft.tokenId);
-                        }
+                    {/* Border with worn effect */}
+                    <div
+                      className="absolute inset-0 pointer-events-none transition-all duration-300 group-hover:border-white/30"
+                      style={{
+                        clipPath: vintageClipPath,
+                        border: "1px solid rgba(255,255,255,0.12)",
                       }}
-                      disabled={isActionLoading}
-                      className="w-full py-2 bg-white/5 border border-white/10 text-white text-[9px] font-mono uppercase tracking-wider rounded hover:bg-white hover:text-black transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 hover:cursor-pointer"
-                    >
-                      <Box size={10} />
-                      {isActionLoading
-                        ? "PROCESSING..."
-                        : isOwner
-                        ? isListed
-                          ? "UNLIST"
-                          : "LIST ASSET"
-                        : "VIEW DETAILS"}
-                    </button>
-                  </div>
+                    />
 
-                  {/* Hover Border Effect */}
-                  <div className="absolute inset-0 border border-white/0 group-hover:border-white/20 rounded-lg pointer-events-none transition-all" />
+                    {/* Content Container */}
+                    <div
+                      className="relative h-full w-full flex flex-col p-4 text-white"
+                      style={{ clipPath: vintageClipPath }}
+                    >
+                      {/* Image Container */}
+                      <div className="flex-grow overflow-hidden relative">
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent z-10" />
+                        <img
+                          src={nft.tokenURI}
+                          className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105 grayscale group-hover:grayscale-0"
+                          alt={nft.name}
+                        />
+
+                        {/* Status Badges */}
+                        <div className="absolute top-2 left-2 z-20 flex gap-1">
+                          {isListed && (
+                            <div className="bg-emerald-500/20 backdrop-blur border border-emerald-500/30 px-1.5 py-0.5 rounded text-[7px] font-mono text-emerald-400 flex items-center gap-0.5">
+                              <Zap size={6} /> LISTED
+                            </div>
+                          )}
+                          {isOwner && (
+                            <div className="bg-blue-500/20 backdrop-blur border border-blue-500/30 px-1.5 py-0.5 rounded text-[7px] font-mono text-blue-400 flex items-center gap-0.5">
+                              <Shield size={6} /> OWNED
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Content Area */}
+                      <div className="mt-3 space-y-1.5 relative">
+                        {/* Asset ID */}
+                        <p className="text-[7px] font-mono text-white/40 tracking-widest uppercase">
+                          ASSET #
+                          {nft.tokenId?.toString?.()?.slice(0, 6) || "----"}
+                        </p>
+
+                        {/* Asset Name */}
+                        <p className="text-[11px] font-mono font-bold uppercase tracking-tighter text-white/80 line-clamp-1">
+                          {nft.name.length > 20
+                            ? nft.name.slice(0, 18) + "..."
+                            : nft.name}
+                        </p>
+
+                        {/* Price Section */}
+                        <div className="flex justify-between items-center border-t border-white/10 pt-1.5">
+                          <span className="text-[7px] font-mono text-white/40 tracking-wider">
+                            ₿ PRICE
+                          </span>
+                          <span className="text-[10px] font-bold tracking-tight text-white/90">
+                            {formatPriceInEth(nft.price)} ETH
+                          </span>
+                        </div>
+
+                        {/* Owner Info */}
+                        <div className="flex justify-between items-center">
+                          <span className="text-[6px] font-mono text-white/30">
+                            OWNER
+                          </span>
+                          <span className="font-mono text-white/50 text-[6px]">
+                            {shortAddress(nft.owner)}
+                          </span>
+                        </div>
+
+                        {/* Vintage Stamp Mark */}
+                        <div className="absolute -bottom-1 -right-1 opacity-10 group-hover:opacity-20 transition-opacity">
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 20 20"
+                            fill="none"
+                          >
+                            <circle
+                              cx="10"
+                              cy="10"
+                              r="8"
+                              stroke="white"
+                              strokeWidth="0.5"
+                            />
+                            <path
+                              d="M10 5 L10 15 M5 10 L15 10"
+                              stroke="white"
+                              strokeWidth="0.5"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Corner Decorations */}
+                    <div className="absolute -top-0.5 -left-0.5 w-4 h-4">
+                      <div className="absolute top-0 left-0 w-2.5 h-px bg-white/20 group-hover:bg-white/40 transition-colors" />
+                      <div className="absolute top-0 left-0 w-px h-2.5 bg-white/20 group-hover:bg-white/40 transition-colors" />
+                    </div>
+                    <div className="absolute -top-0.5 -right-0.5 w-4 h-4">
+                      <div className="absolute top-0 right-0 w-2.5 h-px bg-white/20 group-hover:bg-white/40 transition-colors" />
+                      <div className="absolute top-0 right-0 w-px h-2.5 bg-white/20 group-hover:bg-white/40 transition-colors" />
+                    </div>
+                    <div className="absolute -bottom-0.5 -left-0.5 w-4 h-4">
+                      <div className="absolute bottom-0 left-0 w-2.5 h-px bg-white/20 group-hover:bg-white/40 transition-colors" />
+                      <div className="absolute bottom-0 left-0 w-px h-2.5 bg-white/20 group-hover:bg-white/40 transition-colors" />
+                    </div>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4">
+                      <div className="absolute bottom-0 right-0 w-2.5 h-px bg-white/20 group-hover:bg-white/40 transition-colors" />
+                      <div className="absolute bottom-0 right-0 w-px h-2.5 bg-white/20 group-hover:bg-white/40 transition-colors" />
+                    </div>
+
+                    {/* Action Button Overlay */}
+                    <div className="absolute inset-x-0 bottom-0 p-3 z-30 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!isOwner && !isListed) {
+                            openNftDetailsSidebar(nft);
+                            return;
+                          }
+                          if (isOwner && isListed) {
+                            handleUnlist(nft.tokenId);
+                          } else if (isOwner && !isListed) {
+                            handleList(nft.tokenId);
+                          } else if (!isOwner && isListed) {
+                            openNftDetailsSidebar(nft);
+                          } else {
+                            openNftDetailsSidebar(nft);
+                          }
+                        }}
+                        disabled={isActionLoading}
+                        className="w-full py-2 bg-black/80 backdrop-blur border border-white/20 text-white text-[8px] font-mono uppercase tracking-wider rounded hover:bg-white hover:text-black transition-all duration-300 flex items-center justify-center gap-1 disabled:opacity-50"
+                      >
+                        <Box size={8} />
+                        {isActionLoading
+                          ? "PROCESSING..."
+                          : isOwner
+                          ? isListed
+                            ? "UNLIST"
+                            : "LIST ASSET"
+                          : isListed
+                          ? "PURCHASE"
+                          : "VIEW DETAILS"}
+                      </button>
+                    </div>
+                  </div>
                 </MotionDiv>
               );
             })}
@@ -548,10 +713,11 @@ function MarketPlace() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="flex flex-col items-center justify-center py-32 border border-white/5 rounded-2xl bg-white/2"
+            style={{ clipPath: vintageClipPath }}
           >
-            <Database className="text-gray-700 w-12 h-12 mb-4" />
+            <Layers className="text-gray-700 w-12 h-12 mb-4" />
             <p className="text-gray-500 font-mono text-xs uppercase tracking-widest">
-              NO_ASSETS_FOUND_IN_SECTOR
+              NO_ASSETS_FOUND
             </p>
             <p className="text-gray-600 font-mono text-[9px] mt-2">
               Try adjusting your filters or check back later
@@ -560,14 +726,13 @@ function MarketPlace() {
         )}
       </div>
 
-      {/* Custom Scrollbar Hide */}
       <style jsx>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }
-        .line-clamp-2 {
+        .line-clamp-1 {
           display: -webkit-box;
-          -webkit-line-clamp: 2;
+          -webkit-line-clamp: 1;
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
