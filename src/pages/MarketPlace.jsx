@@ -326,7 +326,7 @@ function MarketPlace() {
                 // BAZAAR_MARKETPLACE
               </p>
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white uppercase tracking-tighter">
+            <h1 className="text-4xl sm:text-5xl italic lg:text-6xl font-bold text-white uppercase tracking-tighter">
               Asset{" "}
               <span className="text-transparent [-webkit-text-stroke:0.8px_white]">
                 Inventory

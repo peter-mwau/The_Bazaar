@@ -110,23 +110,26 @@ const Footer = () => {
               ┌─ RESOURCES
             </h3>
             <ul className="space-y-2">
-              {["Documentation", "Whitepaper", "Audit Report", "Terms"].map(
-                (item) => (
-                  <li key={item}>
-                    <Link
-                      to={`/${item.toLowerCase().replace(/\s+/g, "-")}`}
-                      className="text-gray-500 hover:text-white text-[11px] transition-all font-mono group flex items-center gap-2"
-                    >
-                      <span className="text-white/20 group-hover:text-white/40 transition-colors">
-                        ↳
-                      </span>
-                      <span className="group-hover:translate-x-1 transition-transform">
-                        {item}
-                      </span>
-                    </Link>
-                  </li>
-                ),
-              )}
+              {[
+                { label: "Documentation", path: "/docs" },
+                { label: "Whitepaper", path: "/docs/whitepaper" },
+                { label: "Audit Report", path: "/docs/audit-report" },
+                { label: "Terms", path: "/docs/terms" },
+              ].map((item) => (
+                <li key={item.label}>
+                  <Link
+                    to={item.path}
+                    className="text-gray-500 hover:text-white text-[11px] transition-all font-mono group flex items-center gap-2"
+                  >
+                    <span className="text-white/20 group-hover:text-white/40 transition-colors">
+                      ↳
+                    </span>
+                    <span className="group-hover:translate-x-1 transition-transform">
+                      {item.label}
+                    </span>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -231,13 +234,19 @@ const Footer = () => {
             © {currentYear} THE BAZAAR // ALL_RIGHTS_RESERVED
           </p>
           <div className="flex gap-6">
-            {["Status", "Privacy", "Terms", "Contact"].map((item) => (
-              <button
-                key={item}
+            {[
+              { label: "Status", path: "/docs/getting-started" },
+              { label: "Privacy", path: "/docs/privacy" },
+              { label: "Terms", path: "/docs/terms" },
+              { label: "Contact", path: "/docs/contact" },
+            ].map((item) => (
+              <Link
+                key={item.label}
+                to={item.path}
                 className="text-[8px] font-mono text-white/40 hover:text-white/80 transition-colors uppercase tracking-wider hover:tracking-widest transition-all"
               >
-                {item}
-              </button>
+                {item.label}
+              </Link>
             ))}
           </div>
         </div>
