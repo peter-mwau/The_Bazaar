@@ -37,6 +37,18 @@ export function BazaarConnectButton() {
     [],
   );
 
+  if (!client) {
+    return (
+      <button
+        type="button"
+        disabled
+        title="Missing VITE_THIRDWEB_CLIENT_ID in environment configuration"
+      >
+        Wallet unavailable
+      </button>
+    );
+  }
+
   return (
     <ConnectButton
       client={client}
