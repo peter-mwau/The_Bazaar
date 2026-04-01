@@ -11,10 +11,10 @@ function Navbar() {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-[999] w-full bg-black backdrop-blur pt-6 flex justify-center">
+    <header className="sticky top-0 z-999 w-full bg-black backdrop-blur pt-6 flex justify-center">
       <nav className="max-w-7xl w-full flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link to="/" className="text-lg font-bold text-white flex-shrink-0">
+        <Link to="/" className="text-lg font-bold text-white shrink-0">
           {/* The Bazaar */}
           <img src="/thebazaar_logo.png" className="h-15 w-20" />
         </Link>
@@ -51,6 +51,16 @@ function Navbar() {
           >
             My NFTs
           </Link>
+          <Link
+            to="/docs"
+            className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+              isActive("/docs")
+                ? "text-white border-b-2 border-white"
+                : "text-gray-300 hover:text-white"
+            }`}
+          >
+            Docs
+          </Link>
         </div>
 
         {/* Desktop Connect Button */}
@@ -84,7 +94,7 @@ function Navbar() {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 bg-black border-b rounded-bl-lg rounded-br-lg bg-opacity-95 backdrop-blur border-white border-1 border-l-0 border-r-0 border-t-0">
+        <div className="md:hidden absolute top-full left-0 right-0 bg-black border-b rounded-bl-lg rounded-br-lg bg-opacity-95 backdrop-blur border-white border border-l-0 border-r-0 border-t-0">
           <div className="max-w-7xl mx-auto px-4 py-4 space-y-2">
             <Link
               to="/"
@@ -118,6 +128,17 @@ function Navbar() {
               onClick={() => setIsOpen(false)}
             >
               My NFTs
+            </Link>
+            <Link
+              to="/docs"
+              className={`block rounded-md px-3 py-2 text-base font-medium transition-colors ${
+                isActive("/docs")
+                  ? "text-white border-l border-r border-white"
+                  : "text-gray-300 hover:text-white hover:border-t hover:border-b hover:rounded-lg hover:bg-transparent"
+              }`}
+              onClick={() => setIsOpen(false)}
+            >
+              Docs
             </Link>
             <div className="pt-2 border-t border-gray-700">
               <BazaarConnectButton />

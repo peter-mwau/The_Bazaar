@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import Navbar from "./components/Navbar";
 import { Toaster } from "react-hot-toast";
 import MarketPlace from "./pages/MarketPlace";
+import Docs from "./pages/Docs";
 import Footer from "./components/Footer";
 import Web3LogoMarquee from "./components/Web3LogoMarquee";
 import PerspectiveGrid from "./components/PerspectiveGrid";
@@ -43,6 +44,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/marketplace" element={<MarketPlace />} />
+        <Route path="/docs" element={<Docs />} />
+        <Route path="/docs/:slug" element={<Docs />} />
       </Routes>
       {isHomePage && <Web3LogoMarquee />}
       {isHomePage && <PerspectiveGrid />}
