@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import Navbar from "./components/Navbar";
 import { Toaster } from "react-hot-toast";
 import MarketPlace from "./pages/MarketPlace";
+import Vault from "./pages/Vault";
 import Docs from "./pages/Docs";
 import Footer from "./components/Footer";
 import Web3LogoMarquee from "./components/Web3LogoMarquee";
@@ -45,6 +46,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/marketplace" element={<MarketPlace />} />
+        <Route path="/vault" element={<Vault />} />
         <Route path="/docs" element={<Docs />} />
         <Route path="/docs/:slug" element={<Docs />} />
         <Route path="*" element={<NotFound />} />

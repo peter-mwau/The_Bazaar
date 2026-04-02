@@ -119,7 +119,7 @@ const NotFound = () => {
             <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping" />
           </div>
           <div className="flex-1">
-            <h1 className="text-4xl sm:text-5xl italic lg:text-6xl font-bold text-white uppercase tracking-tighter">
+            <h1 className="text-4xl sm:text-5xl font-custom italic lg:text-6xl font-bold text-white uppercase tracking-tighter">
               Error
               <span className="text-transparent [-webkit-text-stroke:0.8px_white]">
                 _404

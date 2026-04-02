@@ -32,3 +32,81 @@
 .Toastify__progress-bar {
   background: white !important;
 }
+
+@keyframes scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(1000%);
+  }
+}
+
+@keyframes flicker {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.1;
+  }
+}
+
+@keyframes glitch {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(2px, -2px);
+  }
+  60% {
+    transform: translate(-1px, 1px);
+  }
+  80% {
+    transform: translate(1px, -1px);
+  }
+}
+
+.animate-scan {
+  animation: scan 8s linear infinite;
+}
+
+.animate-flicker {
+  animation: flicker 0.15s infinite;
+}
+
+.animate-glitch {
+  animation: glitch 0.2s ease-in-out;
+}
+
+.bg-size-\[28px_28px\] {
+  background-size: 28px 28px;
+}
+
+/* Vintage CRT Glow Effect */
+.text-glow {
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.5);
+}

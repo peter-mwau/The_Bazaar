@@ -3,7 +3,7 @@ import { client } from "../services/client";
 import { ConnectButton, darkTheme } from "thirdweb/react";
 import { defineChain } from "thirdweb/chains";
 import { createWallet, inAppWallet } from "thirdweb/wallets";
-import BazaarLogo from "/favicon.svg";
+import BazaarLogo from "/thebazaar_logo.png";
 
 export function BazaarConnectButton() {
   const wallets = useMemo(
@@ -15,7 +15,7 @@ export function BazaarConnectButton() {
         metadata: {
           name: "The Bazaar",
           image: {
-            src: "/favicon.svg",
+            src: "/thebazaar_logo.png",
             width: 150,
             height: 150,
           },
