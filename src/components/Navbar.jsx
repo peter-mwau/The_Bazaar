@@ -9,6 +9,8 @@ function Navbar() {
   const toggleMenu = () => setIsOpen(!isOpen);
 
   const isActive = (path) => location.pathname === path;
+  const isVaultActive =
+    location.pathname === "/vault" || location.pathname === "/admin";
 
   return (
     <header className="sticky top-0 z-999 w-full bg-black backdrop-blur pt-6 flex justify-center">
@@ -50,6 +52,16 @@ function Navbar() {
             }`}
           >
             My NFTs
+          </Link>
+          <Link
+            to="/vault"
+            className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+              isVaultActive
+                ? "text-white border-b-2 border-white"
+                : "text-gray-300 hover:text-white"
+            }`}
+          >
+            Vault
           </Link>
           <Link
             to="/docs"
@@ -128,6 +140,17 @@ function Navbar() {
               onClick={() => setIsOpen(false)}
             >
               My NFTs
+            </Link>
+            <Link
+              to="/vault"
+              className={`block rounded-md px-3 py-2 text-base font-medium transition-colors ${
+                isVaultActive
+                  ? "text-white border-l border-r border-white"
+                  : "text-gray-300 hover:text-white hover:border-t hover:border-b hover:rounded-lg hover:bg-transparent"
+              }`}
+              onClick={() => setIsOpen(false)}
+            >
+              Vault
             </Link>
             <Link
               to="/docs"
