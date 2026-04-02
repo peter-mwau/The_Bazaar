@@ -265,7 +265,7 @@ function Docs() {
                 // PROTOCOL_DOCS_v1.0.4
               </p>
             </div>
-            <h1 className="text-4xl sm:text-5xl italic lg:text-6xl font-bold text-white uppercase tracking-tighter">
+            <h1 className="text-4xl font-custom sm:text-5xl italic lg:text-6xl font-bold text-white uppercase tracking-tighter">
               Bazaar{" "}
               <span className="text-transparent [-webkit-text-stroke:0.8px_white]">
                 Documentation
