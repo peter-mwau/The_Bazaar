@@ -9,6 +9,7 @@ import Docs from "./pages/Docs";
 import Footer from "./components/Footer";
 import Web3LogoMarquee from "./components/Web3LogoMarquee";
 import PerspectiveGrid from "./components/PerspectiveGrid";
+import NotFound from "./pages/404Page";
 
 function App() {
   const location = useLocation();
@@ -46,6 +47,7 @@ function App() {
         <Route path="/marketplace" element={<MarketPlace />} />
         <Route path="/docs" element={<Docs />} />
         <Route path="/docs/:slug" element={<Docs />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       {isHomePage && <Web3LogoMarquee />}
       {isHomePage && <PerspectiveGrid />}
