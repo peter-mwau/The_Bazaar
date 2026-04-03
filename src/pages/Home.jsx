@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   motion,
+  useMotionValueEvent,
   useScroll,
   useTransform,
   AnimatePresence,
@@ -16,6 +17,7 @@ import ProtocolStats from "../components/LiveProtocolStats";
 import TerminalNews from "../components/TerminalNews";
 import SystemAlerts from "../components/SystemAlerts";
 import Web3LogoMarquee from "../components/Web3LogoMarquee";
+import Antigravity from "../components/Antigravity";
 
 function Home() {
   void motion;
@@ -27,6 +29,8 @@ function Home() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [isMinting, setIsMinting] = useState(false);
+  const [ctaIsRow, setCtaIsRow] = useState(false);
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -36,6 +40,19 @@ function Home() {
   useEffect(() => {
     fetchAllNFTs();
   }, [fetchAllNFTs]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 639px)");
+
+    const updateScreenSize = (event) => {
+      setIsSmallScreen(event.matches);
+    };
+
+    setIsSmallScreen(mediaQuery.matches);
+    mediaQuery.addEventListener("change", updateScreenSize);
+
+    return () => mediaQuery.removeEventListener("change", updateScreenSize);
+  }, []);
 
   const STEPS = {
     1: "INITIALIZING MINTING PROTOCOL",
@@ -178,75 +195,116 @@ function Home() {
   const yVendor = useTransform(scrollYProgress, [0.2, 0.4], [100, 60]);
   const btnOpacity = useTransform(scrollYProgress, [0.2, 0.35], [0, 1]);
 
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    setCtaIsRow(!isSmallScreen && latest >= 0.18);
+  });
+
   const isMintingInProgress = currentStep > 0 && currentStep < 5;
 
   return (
-    <div className="bg-black h-auto overflow-x-hidden" id="main">
+    <div className="bg-black h-auto overflow-x-hidden relative" id="main">
       {/* Add Toaster component for toast notifications */}
 
-      <motion.div
-        style={{ y: yBg }}
-        className="absolute inset-0 z-0 opacity-40 pointer-events-none"
-      >
-        <img
-          src="/hero.png"
-          alt="Hero"
-          className="w-full h-full object-cover pt-10"
-        />
-      </motion.div>
-
-      <FeaturedTicker nfts={marketData?.allNFTs || []} />
-
-      <div className="flex flex-col mx-auto w-[100%] sticky top-0 h-screen justify-center">
-        <div className="flex flex-col gap-1 mt-20 left-5 ml-10 items-start mb-[150px]">
-          <motion.h1
-            style={{ x: xWelcome }}
-            className="text-6xl font-custom font-bold mb-4 underline decoration-double decoration-gray-500 underline-offset-[18px] text-white uppercase pt-5"
-          >
-            Welcome to
-          </motion.h1>
-
-          <motion.div style={{ x: xBazaar }} className="relative inline-block">
-            <span className="font-custom text-[170px] italic font-bold text-transparent [-webkit-text-stroke:1px_white] uppercase">
-              The Bazaar
-            </span>
-
-            <motion.div
-              style={{ width: strikeWidth, opacity: strikeOpacity }}
-              className="absolute top-[60%] left-0 h-[2px] bg-gray-700 origin-left"
-            />
-          </motion.div>
-        </div>
-
-        <p className="text-lg font-custom text-gray-300 mt-0 max-w-2xl mx-auto text-start underline decoration-wavy underline-offset-4 font-satoshi">
-          Interweaving Art, Assets, and Accurate Data. Discover, Collect, and
-          Trade Unique NFTs with Confidence.
-        </p>
-
-        <span className="absolute text-gray-700/20 hover:text-gray-500 transition-all duration-1000 ml-[32%] mt-0 uppercase text-8xl tracking-[0.1em] font-bold font-serif -z-10 mb-[700px]">
-          Veritas
-        </span>
-
-        <span className="text-[900px] ml-[40%] absolute -z-10 text-transparent [-webkit-text-stroke:2px_theme(colors.gray.700/30%)] drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] font-bold">
-          ★
-        </span>
+      <div className="fixed inset-0 z-0 bg-black pointer-events-none">
+        <motion.div style={{ y: yBg }} className="absolute inset-0">
+          <Antigravity
+            count={300}
+            magnetRadius={10}
+            ringRadius={10}
+            waveSpeed={0.5}
+            waveAmplitude={1}
+            particleSize={0.5}
+            lerpSpeed={0.1}
+            color="#ffffff"
+            autoAnimate={false}
+            particleVariance={1}
+            rotationSpeed={0}
+            depthFactor={1}
+            pulseSpeed={3}
+            particleShape="capsule"
+            fieldStrength={10}
+          />
+        </motion.div>
       </div>
 
-      <div className="flex flex-col items-center mt-35 mb-20 py-10 relative z-20 h-60 w-full">
-        <motion.button
-          style={{ x: xJoin, y: yJoin, opacity: btnOpacity }}
-          className="absolute px-10 py-3 bg-transparent rounded-lg text-white font-custom uppercase tracking-widest text-sm border-t border-b border-white/60 hover:border-t-0 hover:border-b-0 hover:border-l hover:border-r hover:border-white hover:translate-y-[-4px] transition-all duration-300 ease-in-out whitespace-nowrap"
-        >
-          Join The Vibe
-        </motion.button>
+      <div className="relative z-10">
+        <FeaturedTicker nfts={marketData?.allNFTs || []} />
 
-        <motion.button
-          style={{ x: xVendor, y: yVendor, opacity: btnOpacity }}
-          onClick={openForm}
-          className="absolute px-10 py-3 bg-white text-black font-custom font-bold uppercase text-sm rounded-lg hover:bg-gray-200 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 whitespace-nowrap hover:cursor-pointer"
+        <div className="flex flex-col mx-auto w-full sticky top-0 min-h-svh justify-center px-4 sm:px-6 lg:px-10">
+          <div className="flex flex-col gap-2 mt-16 sm:mt-20 ml-0 sm:ml-10 items-center sm:items-start text-center sm:text-left max-w-full">
+            <motion.h1
+              style={{ x: xWelcome }}
+              className="text-4xl sm:text-5xl lg:text-6xl font-custom font-bold mb-4 underline decoration-double decoration-gray-500 underline-offset-18 text-white uppercase pt-5"
+            >
+              Welcome to
+            </motion.h1>
+
+            <motion.div
+              style={{ x: xBazaar }}
+              className="relative inline-block max-w-full"
+            >
+              <span className="font-custom text-[3.5rem] sm:text-[5.5rem] lg:text-[170px] italic font-bold text-transparent [-webkit-text-stroke:1px_white] uppercase leading-none whitespace-nowrap">
+                The Bazaar
+              </span>
+
+              <motion.div
+                style={{ width: strikeWidth, opacity: strikeOpacity }}
+                className="absolute top-[60%] left-0 h-0.5 bg-gray-700 origin-left"
+              />
+            </motion.div>
+
+            <p className="text-sm sm:text-base lg:text-lg font-custom flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-5 text-gray-300 mt-0 max-w-[90vw] sm:max-w-2xl mx-auto sm:mx-0 text-center sm:text-left">
+              Interweaving Art, Assets, and Accurate Data. Discover, Collect,
+              and Trade Unique NFTs with Confidence.
+              <span className="hidden sm:inline-block text-5xl"> | </span>
+            </p>
+          </div>
+
+          <span className="hidden md:block absolute text-gray-700/20 hover:text-gray-500 transition-all duration-1000 ml-[32%] mt-0 uppercase text-8xl tracking-widest font-bold font-serif -z-10 mb-175">
+            Veritas
+          </span>
+
+          <span
+            className="hidden md:block text-[900px] ml-[40%] absolute -z-10 text-transparent drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] font-bold"
+            style={{ WebkitTextStroke: "2px rgba(55, 65, 81, 0.3)" }}
+          >
+            ★
+          </span>
+        </div>
+      </div>
+
+      <div className="sticky top-24 sm:top-30 z-30 flex w-full justify-center px-4 sm:px-6 pt-10 sm:pt-30 pb-10">
+        <motion.div
+          style={{ opacity: btnOpacity }}
+          className={`flex items-center justify-center gap-4 transition-all duration-500 ${
+            isSmallScreen
+              ? "flex-col"
+              : ctaIsRow
+              ? "flex-row gap-1"
+              : "flex-col"
+          }`}
         >
-          Become a Vendor
-        </motion.button>
+          <motion.button
+            style={{
+              x: isSmallScreen || !ctaIsRow ? 0 : xJoin,
+              y: isSmallScreen || !ctaIsRow ? 0 : yJoin,
+            }}
+            className="w-[min(18rem,90vw)] sm:w-auto px-10 py-3 bg-transparent rounded-lg text-white font-custom uppercase tracking-widest text-sm border border-white/55 hover:border-white hover:bg-white/5 hover:-translate-y-1 transition-all duration-300 ease-in-out whitespace-nowrap shadow-[0_0_24px_rgba(255,255,255,0.08)] backdrop-blur-sm"
+          >
+            Join The Vibe
+          </motion.button>
+
+          <motion.button
+            style={{
+              x: isSmallScreen || !ctaIsRow ? 0 : xVendor,
+              y: isSmallScreen || !ctaIsRow ? 0 : yVendor,
+            }}
+            onClick={openForm}
+            className="w-[min(18rem,90vw)] sm:w-auto px-10 py-3 bg-white text-black font-custom font-bold uppercase text-sm rounded-lg hover:bg-gray-200 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 whitespace-nowrap hover:cursor-pointer"
+          >
+            Become a Vendor
+          </motion.button>
+        </motion.div>
       </div>
 
       {/* Form Section */}
@@ -257,9 +315,9 @@ function Home() {
             animate={{ height: "auto", opacity: 1, y: 0 }}
             exit={{ height: 0, opacity: 0, y: -20 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden w-[60%] mx-auto mb-20 mt-10 relative z-30 bg-black"
+            className="overflow-hidden w-[92%] sm:w-[60%] mx-auto mb-20 mt-10 relative z-30 bg-black"
           >
-            <div className="bg-white/5 backdrop-blur-md rounded-lg border-r border-l border-white/20 p-8 shadow-2xl">
+            <div className="bg-white/5 backdrop-blur-md rounded-lg border-r border-l border-white/20 p-4 sm:p-8 shadow-2xl">
               {/* Header */}
               <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
                 <div className="flex items-center gap-3">
@@ -276,7 +334,7 @@ function Home() {
               </div>
 
               {/* Form Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                 {/* Left Side: Upload Section */}
                 <div className="space-y-4">
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest">
@@ -777,7 +835,7 @@ function Home() {
                       </div>
                       <div className="w-full h-1 bg-green-500/10 rounded-full overflow-hidden">
                         <motion.div
-                          className="h-full bg-gradient-to-r from-green-500 to-emerald-400"
+                          className="h-full bg-linear-to-r from-green-500 to-emerald-400"
                           initial={{ width: "0%" }}
                           animate={{ width: `${(currentStep / 4) * 100}%` }}
                           transition={{ duration: 0.5 }}
